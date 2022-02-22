@@ -1,7 +1,6 @@
 import pygame
 import pygame.draw as dr
 import math
-from random import randint
 
 
 def draw_mukhomor(x, y, lx, ly, angle, screen):
@@ -39,6 +38,7 @@ def igla(x1, y1, x2, y2, l, screen_canvas):
                                               y1 - (x2 - x1) / 2 * k - abs(l * math.sin(math.atan(abs(-1 / k))))),
                                           (x1, y1)],
                width=1)
+
 
 def draw_hedgehog(x, y, lx, ly, canva):
     screen = pygame.Surface([650, 900], pygame.SRCALPHA)
@@ -271,9 +271,10 @@ def draw_hedgehog(x, y, lx, ly, canva):
     igla(450, 785, 456, 787, 61, screen)
     igla(496, 778, 505, 779, 53, screen)
     igla(441, 776, 447, 773, 71, screen)
-    shape_chop.blit(screen, area =[300, 600,300,200] ,dest=[0, 0])
-    shape_scaled = pygame.transform.scale(shape_chop, [lx , ly * 2])
+    shape_chop.blit(screen, area=[300, 600, 300, 200], dest=[0, 0])
+    shape_scaled = pygame.transform.scale(shape_chop, [lx, ly])
     canva.blit(shape_scaled, area=[0, 0, 300, 200], dest=[x, y])
+
 
 pygame.init()
 
@@ -281,12 +282,11 @@ FPS = 30
 
 screen1 = pygame.display.set_mode((650, 900))
 
-
-
 dr.rect(screen1, (32, 153, 82), (0, 0, 650, 550))
 dr.rect(screen1, (104, 102, 103), (0, 0, 650, 550), width=1)
 dr.rect(screen1, (86, 76, 70), (0, 550, 650, 350))
 dr.rect(screen1, (104, 102, 103), (0, 550, 650, 350), width=1)
+draw_hedgehog(110, 460, 250, 150, screen1)
 dr.rect(screen1, (206, 156, 30), (0, 0, 50, 600))
 dr.rect(screen1, (104, 102, 103), (0, 0, 50, 600), width=1)
 dr.rect(screen1, (206, 156, 30), (90, 0, 150, 850))
@@ -295,26 +295,16 @@ dr.rect(screen1, (206, 156, 30), (470, 0, 50, 600))
 dr.rect(screen1, (104, 102, 103), (470, 0, 50, 600), width=1)
 dr.rect(screen1, (206, 156, 30), (590, 0, 40, 700))
 dr.rect(screen1, (104, 102, 103), (590, 0, 40, 700), width=1)
-dr.ellipse(screen1, (63, 45, 31), (310, 700, 260, 100))
-dr.ellipse(screen1, (104, 102, 103), (310, 700, 260, 100), width=1)
-dr.ellipse(screen1, (63, 45, 31), (300, 760, 32, 17))
-dr.ellipse(screen1, (104, 102, 103), (300, 760, 32, 17), width=1)
-dr.ellipse(screen1, (63, 45, 31), (330, 780, 30, 15))
-dr.ellipse(screen1, (104, 102, 103), (330, 780, 30, 15), width=1)
-dr.ellipse(screen1, (63, 45, 31), (520, 780, 30, 15))
-dr.ellipse(screen1, (104, 102, 103), (520, 780, 30, 15), width=1)
-dr.ellipse(screen1, (63, 45, 31), (545, 760, 25, 15))
-dr.ellipse(screen1, (104, 102, 103), (545, 760, 25, 15), width=1)
-dr.ellipse(screen1, (63, 45, 31), (540, 730, 50, 30))
-dr.ellipse(screen1, (104, 102, 103), (540, 730, 50, 30), width=1)
-dr.ellipse(screen1, (63, 45, 31), (589, 744, 5, 5))
-dr.ellipse(screen1, (104, 102, 103), (589, 744, 5, 5), width=1)
-dr.ellipse(screen1, (0, 0, 0), (570, 730, 7, 7))
-dr.ellipse(screen1, (104, 102, 103), (570, 730, 7, 7), width=1)
-dr.ellipse(screen1, (0, 0, 0), (560, 740, 7, 7))
-dr.ellipse(screen1, (104, 102, 103), (560, 740, 7, 7), width=1)
 
-draw_hedgehog(200, 200, 150, 100, screen1)
+draw_hedgehog(310, 600, 300, 200, screen1)
+draw_hedgehog(500, 450, 250, 150, screen1)
+draw_hedgehog(-100, 700, 250, 150, screen1)
+
+draw_mukhomor(270, 800, 140, 30, 0, screen1)
+draw_mukhomor(370, 840, 80, 17, 0, screen1)
+draw_mukhomor(470, 810, 130, 30, -10, screen1)
+draw_mukhomor(540, 800, 140, 30, 20, screen1)
+draw_mukhomor(440, 845, 90, 21, 7, screen1)
 
 pygame.display.update()
 clock = pygame.time.Clock()
