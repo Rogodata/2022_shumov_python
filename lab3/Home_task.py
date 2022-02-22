@@ -3,6 +3,7 @@ import pygame.draw as dr
 import math
 
 
+# Та же функция
 def draw_mukhomor(x, y, lx, ly, angle, screen):
     shape_surf = pygame.Surface([max(lx, ly), max(lx, ly)], pygame.SRCALPHA)
     dr.ellipse(shape_surf, (160, 160, 160), [lx / 2 - ly / 2, 0, ly, lx])
@@ -16,14 +17,7 @@ def draw_mukhomor(x, y, lx, ly, angle, screen):
     screen.blit(rotated_surf, dest=[x, y])
 
 
-def draw_ellipse_angle(surface, color, rect, angle, width=0):
-    target_rect = pygame.Rect(rect)
-    shape_surf = pygame.Surface(target_rect.size, pygame.SRCALPHA)
-    pygame.draw.ellipse(shape_surf, color, (0, 0, *target_rect.size), width)
-    rotated_surf = pygame.transform.rotate(shape_surf, angle)
-    surface.blit(rotated_surf, rotated_surf.get_rect(center=target_rect.center))
-
-
+# Та же функция
 def igla(x1, y1, x2, y2, l, screen_canvas):
     k = (y2 - y1) / (x2 - x1)
     dr.polygon(screen_canvas, (44, 20, 26), [(x1, y1), (x2, y2),
@@ -40,6 +34,7 @@ def igla(x1, y1, x2, y2, l, screen_canvas):
                width=1)
 
 
+# Данная функция рисуе ежа на экране из предыдущей задачи а затем сжимает или увеличивает с последующей вставкой на этот экран
 def draw_hedgehog(x, y, lx, ly, canva):
     screen = pygame.Surface([650, 900], pygame.SRCALPHA)
     shape_chop = pygame.Surface([300, 200], pygame.SRCALPHA)
@@ -282,6 +277,7 @@ FPS = 30
 
 screen1 = pygame.display.set_mode((650, 900))
 
+# Фон
 dr.rect(screen1, (32, 153, 82), (0, 0, 650, 550))
 dr.rect(screen1, (104, 102, 103), (0, 0, 650, 550), width=1)
 dr.rect(screen1, (86, 76, 70), (0, 550, 650, 350))
@@ -295,11 +291,11 @@ dr.rect(screen1, (206, 156, 30), (470, 0, 50, 600))
 dr.rect(screen1, (104, 102, 103), (470, 0, 50, 600), width=1)
 dr.rect(screen1, (206, 156, 30), (590, 0, 40, 700))
 dr.rect(screen1, (104, 102, 103), (590, 0, 40, 700), width=1)
-
+# Ежи
 draw_hedgehog(310, 600, 300, 200, screen1)
 draw_hedgehog(500, 450, 250, 150, screen1)
 draw_hedgehog(-100, 700, 250, 150, screen1)
-
+# Мухоморы
 draw_mukhomor(270, 800, 140, 30, 0, screen1)
 draw_mukhomor(370, 840, 80, 17, 0, screen1)
 draw_mukhomor(470, 810, 130, 30, -10, screen1)

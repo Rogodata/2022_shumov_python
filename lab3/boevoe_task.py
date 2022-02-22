@@ -4,6 +4,8 @@ import math
 from random import randint
 
 
+# Функция, рисующая мухомор, повёрнутый на угол angle в градусах против часовой стрелки в заданном координатами месте листа
+# Сначала мухомор рисуется на дополнительном холсте, потом поворачивается и вклеивается на основной
 def draw_mukhomor(x, y, lx, ly, angle, screen):
     shape_surf = pygame.Surface([max(lx, ly), max(lx, ly)], pygame.SRCALPHA)
     dr.ellipse(shape_surf, (160, 160, 160), [lx / 2 - ly / 2, 0, ly, lx])
@@ -17,14 +19,8 @@ def draw_mukhomor(x, y, lx, ly, angle, screen):
     screen.blit(rotated_surf, dest=[x, y])
 
 
-def draw_ellipse_angle(surface, color, rect, angle, width=0):
-    target_rect = pygame.Rect(rect)
-    shape_surf = pygame.Surface(target_rect.size, pygame.SRCALPHA)
-    pygame.draw.ellipse(shape_surf, color, (0, 0, *target_rect.size), width)
-    rotated_surf = pygame.transform.rotate(shape_surf, angle)
-    surface.blit(rotated_surf, rotated_surf.get_rect(center=target_rect.center))
-
-
+# функция, рисующая иглу в виде равнобедренного треугольника с высотой к основанию = l и заданными координатами вершин основания
+# x1 != x2, y1 != y2
 def igla(x1, y1, x2, y2, l, screen_canvas):
     k = (y2 - y1) / (x2 - x1)
     dr.polygon(screen_canvas, (44, 20, 26), [(x1, y1), (x2, y2),
@@ -46,6 +42,7 @@ pygame.init()
 FPS = 30
 screen = pygame.display.set_mode((650, 900))
 
+# рисуем фон
 dr.rect(screen, (32, 153, 82), (0, 0, 650, 550))
 dr.rect(screen, (104, 102, 103), (0, 0, 650, 550), width=1)
 dr.rect(screen, (86, 76, 70), (0, 550, 650, 350))
@@ -58,6 +55,7 @@ dr.rect(screen, (206, 156, 30), (470, 0, 50, 600))
 dr.rect(screen, (104, 102, 103), (470, 0, 50, 600), width=1)
 dr.rect(screen, (206, 156, 30), (590, 0, 40, 700))
 dr.rect(screen, (104, 102, 103), (590, 0, 40, 700), width=1)
+# Теперь ежа
 dr.ellipse(screen, (63, 45, 31), (310, 700, 260, 100))
 dr.ellipse(screen, (104, 102, 103), (310, 700, 260, 100), width=1)
 dr.ellipse(screen, (63, 45, 31), (300, 760, 32, 17))
@@ -76,6 +74,7 @@ dr.ellipse(screen, (0, 0, 0), (570, 730, 7, 7))
 dr.ellipse(screen, (104, 102, 103), (570, 730, 7, 7), width=1)
 dr.ellipse(screen, (0, 0, 0), (560, 740, 7, 7))
 dr.ellipse(screen, (104, 102, 103), (560, 740, 7, 7), width=1)
+# Часть иголок сначала рисовал сам
 igla(500, 720, 510, 721, 70, screen)
 igla(510, 721, 520, 722, 70, screen)
 igla(520, 722, 530, 724, 70, screen)
@@ -105,6 +104,23 @@ igla_y1 = []
 igla_y2 = []
 lengths = []
 
+# Используя эту конструкцию можно сгенерировать и нарисовать рандомный массив иголок и, если он понравится, вписать его в программу
+for i in range(90):
+    x1 = randint(330, 535)
+    y1 = randint(770, 786)
+    x2 = randint(x1 + 5, x1 + 10)
+    y2 = y1 + int(math.copysign(randint(1, 3), randint(-1, 1)))
+    length = randint(50, 90)
+    # igla(x1, y1, x2, y2, randint(50, 90), screen)
+    igla_x1.append(x1)
+    igla_x2.append(x2)
+    igla_y1.append(y1)
+    igla_y2.append(y2)
+    lengths.append(length)
+    # print("igla(" + str(igla_x1[i]) + ", " + str(igla_y1[i]) + ", " + str(igla_x2[i]) + ", " + str(
+    #    igla_y2[i]) + ", " + str(lengths[i]) + ", screen)")
+
+# Собственно,сгенерированный массив иголок
 igla(492, 762, 498, 764, 57, screen)
 igla(412, 767, 417, 765, 82, screen)
 igla(341, 762, 351, 764, 53, screen)
@@ -195,7 +211,7 @@ igla(363, 736, 368, 733, 54, screen)
 igla(502, 752, 512, 749, 53, screen)
 igla(453, 725, 463, 728, 84, screen)
 igla(408, 726, 413, 729, 68, screen)
-
+# рисуем всё, что на иголках
 draw_mukhomor(380, 650, 70, 30, -25, screen)
 dr.ellipse(screen, (228, 43, 13), (470, 670, 50, 50))
 dr.ellipse(screen, (104, 102, 103), (470, 670, 50, 50), width=1)
@@ -203,24 +219,7 @@ dr.ellipse(screen, (227, 133, 13), (340, 680, 50, 50))
 dr.ellipse(screen, (104, 102, 103), (340, 680, 50, 50), width=1)
 dr.ellipse(screen, (227, 133, 13), (320, 685, 50, 50))
 dr.ellipse(screen, (104, 102, 103), (320, 685, 50, 50), width=1)
-
-for i in range(90):
-    x1 = randint(330, 535)
-    y1 = randint(770, 786)
-    x2 = randint(x1 + 5, x1 + 10)
-    y2 = y1 + int(math.copysign(randint(1, 3), randint(-1, 1)))
-    length = randint(50, 90)
-    # igla(x1, y1, x2, y2, randint(50, 90), screen)
-    igla_x1.append(x1)
-    igla_x2.append(x2)
-    igla_y1.append(y1)
-    igla_y2.append(y2)
-    lengths.append(length)
-
-for i in range(90):
-    print("igla(" + str(igla_x1[i]) + ", " + str(igla_y1[i]) + ", " + str(igla_x2[i]) + ", " + str(
-        igla_y2[i]) + ", " + str(lengths[i]) + ", screen)")
-
+# И снова массив иголок
 igla(533, 774, 543, 777, 81, screen)
 igla(380, 780, 385, 783, 80, screen)
 igla(381, 774, 390, 772, 51, screen)
@@ -323,95 +322,3 @@ while not finished:
             finished = True
 
 pygame.quit()
-
-'''
-igla(420, 781, 426, 784, 55, screen)
-igla(522, 785, 530, 786, 69, screen)
-igla(491, 785, 498, 784, 86, screen)
-igla(471, 780, 480, 779, 83, screen)
-igla(433, 771, 439, 769, 79, screen)
-igla(473, 782, 478, 784, 59, screen)
-igla(439, 777, 448, 774, 67, screen)
-igla(340, 777, 346, 779, 63, screen)
-igla(408, 777, 414, 779, 65, screen)
-igla(413, 783, 418, 786, 66, screen)
-igla(432, 783, 437, 786, 60, screen)
-igla(380, 777, 385, 779, 54, screen)
-igla(408, 780, 418, 783, 69, screen)
-igla(453, 782, 463, 781, 74, screen)
-igla(479, 770, 485, 769, 87, screen)
-igla(434, 774, 440, 772, 64, screen)
-igla(525, 781, 534, 780, 81, screen)
-igla(439, 784, 447, 783, 75, screen)
-igla(436, 777, 442, 775, 56, screen)
-igla(440, 783, 446, 784, 73, screen)
-igla(336, 770, 344, 772, 75, screen)
-igla(517, 772, 522, 775, 60, screen)
-igla(512, 770, 518, 772, 56, screen)
-igla(377, 783, 383, 781, 83, screen)
-igla(352, 778, 357, 777, 56, screen)
-igla(431, 770, 440, 769, 58, screen)
-igla(514, 775, 523, 778, 54, screen)
-igla(370, 781, 376, 782, 81, screen)
-igla(464, 779, 469, 781, 81, screen)
-igla(432, 784, 437, 781, 60, screen)
-igla(479, 786, 489, 787, 50, screen)
-igla(407, 780, 412, 781, 58, screen)
-igla(376, 771, 386, 768, 76, screen)
-igla(509, 779, 519, 782, 64, screen)
-igla(490, 770, 497, 772, 62, screen)
-igla(424, 782, 433, 780, 63, screen)
-igla(495, 774, 504, 775, 86, screen)
-igla(392, 770, 399, 772, 53, screen)
-igla(445, 781, 450, 783, 50, screen)
-igla(461, 778, 468, 776, 58, screen)
-igla(355, 771, 362, 773, 80, screen)
-igla(491, 772, 501, 769, 65, screen)
-igla(533, 772, 538, 770, 67, screen)
-igla(514, 786, 523, 788, 54, screen)
-igla(468, 770, 477, 772, 71, screen)
-igla(490, 785, 498, 788, 58, screen)
-igla(395, 785, 401, 787, 59, screen)
-igla(498, 778, 507, 781, 64, screen)
-igla(352, 780, 359, 778, 60, screen)
-igla(516, 785, 525, 783, 71, screen)
-igla(367, 779, 375, 776, 84, screen)
-igla(426, 777, 433, 776, 56, screen)
-igla(419, 775, 428, 776, 73, screen)
-igla(416, 776, 425, 777, 82, screen)
-igla(339, 775, 344, 777, 50, screen)
-igla(379, 780, 384, 783, 61, screen)
-igla(484, 774, 491, 776, 78, screen)
-igla(358, 777, 363, 778, 80, screen)
-igla(428, 781, 437, 779, 68, screen)
-igla(353, 783, 358, 781, 76, screen)
-igla(495, 776, 503, 775, 60, screen)
-igla(350, 772, 360, 769, 84, screen)
-igla(436, 772, 442, 769, 64, screen)
-igla(407, 772, 417, 773, 52, screen)
-igla(387, 774, 395, 771, 69, screen)
-igla(458, 773, 467, 770, 82, screen)
-igla(459, 784, 465, 786, 50, screen)
-igla(488, 782, 498, 780, 67, screen)
-igla(506, 771, 516, 773, 62, screen)
-igla(419, 781, 426, 782, 77, screen)
-igla(487, 785, 495, 788, 81, screen)
-igla(430, 778, 438, 780, 86, screen)
-igla(433, 776, 441, 778, 58, screen)
-igla(400, 776, 408, 773, 53, screen)
-igla(512, 782, 520, 785, 60, screen)
-igla(422, 777, 431, 779, 89, screen)
-igla(351, 782, 360, 781, 90, screen)
-igla(432, 778, 437, 779, 64, screen)
-igla(360, 775, 366, 776, 87, screen)
-igla(394, 781, 401, 783, 70, screen)
-igla(401, 784, 406, 785, 64, screen)
-igla(469, 776, 477, 778, 67, screen)
-igla(469, 786, 479, 787, 88, screen)
-igla(405, 784, 413, 787, 60, screen)
-igla(367, 782, 376, 779, 71, screen)
-igla(483, 773, 492, 774, 81, screen)
-igla(337, 780, 343, 783, 72, screen)
-igla(347, 776, 354, 774, 90, screen)
-igla(392, 774, 398, 776, 52, screen)
-igla(497, 775, 507, 774, 55, screen) '''
