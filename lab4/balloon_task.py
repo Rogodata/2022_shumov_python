@@ -48,7 +48,7 @@ def mergeballs(surface, balls_array, balls_number):
         balls_array[i][1] += balls_array[i][5]
         circle(surface, balls_array[i][3], (balls_array[i][0], balls_array[i][1]),
                balls_array[i][2])
-        pygame.display.update()
+    pygame.display.update()
 
 
 def find_shot(surface, x_pos, y_pos, balls_array, balls_number):
@@ -63,11 +63,12 @@ pygame.display.update()
 clock = pygame.time.Clock()
 finished = False
 
-print("How many balls do you want tto see on the screen simultaniously? (number)")
-balls_quantity = int(input("number:"))
+#print("How many balls do you want tto see on the screen simultaniously? (number)")
+#balls_quantity = int(input("number:"))
 #print("How many seconds would you like the ball to be on the screen")
 #life_time = int(input("number:"))
 #life_time *= FPS
+balls_quantity = 5
 
 for i in range(balls_quantity):
     balls.append([0, 0, 0, 0, 0, 0])
@@ -83,8 +84,8 @@ while not finished:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             (x0, y0) = event.pos
             find_shot(screen, x0, y0, balls, balls_quantity)
-    pygame.display.update()
     screen.fill(BLACK)
     mergeballs(screen, balls, balls_quantity)
+    #pygame.display.update()
 
 pygame.quit()
