@@ -5,18 +5,12 @@ import pygame.draw as dr
 from random import randint
 import time
 
-'''
-*После каждого удара о стенку шарик может увеличить скорость!
-*мухомор - сложная мишень
-'''
 
 pygame.init()
 
 FPS = 60
 screen = pygame.display.set_mode((1200, 900))
 
-
-'''Описываем цвета'''
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 YELLOW = (255, 255, 0)
@@ -26,10 +20,7 @@ CYAN = (0, 255, 255)
 BLACK = (0, 0, 0)
 COLORS = [RED, BLUE, YELLOW, GREEN, MAGENTA, CYAN]
 
-'''Счёт игры'''
 score = 0
-
-
 
 
 def game_over(score_number):
@@ -227,24 +218,20 @@ def mukhomor_shot(x_pos, y_pos, score_number, mukhomor_array):
     return score_number
 
 
-'''Пользователю предлагается ввести чило шаров, одновременно находящихся на экране'''
 pygame.display.update()
 clock = pygame.time.Clock()
 finished = False
 
 print("How many balls do you want to see on the screen at once? (number)")
 balls_quantity = int(input("number:"))
-'''game lasts for 30 seconds'''
 
 '''Время начала игры. Первое - для вызова мухомора, второе - для подсчёта таймера'''
 start_time = time.time()
 game_start_time = time.time()
 
-'''Создаём новые шары'''
 for j in range(balls_quantity):
     balls.append([0, 0, 0, 0, 0, 0])
     new_ball(screen, balls, j)
-
 
 score = 0
 while not finished:
@@ -254,30 +241,21 @@ while not finished:
         if event.type == pygame.QUIT:
             finished = True
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            # получили точку события
             (x0, y0) = event.pos
-            # проверяем, лежит ли она внутри шара или мухомора
             score = find_shot(screen, x0, y0, balls, balls_quantity, score)
             score = mukhomor_shot(x0, y0, score, mukhomor)
     screen.fill(BLACK)
-    # После зачернения экрана снова рисуем на нём шары, уже сместившиеся
     mergeballs(screen, balls, balls_quantity)
-    # Выводим на экран таймер
     timer(screen, game_start_time)
-    # Раз в три с половиной секунды вылетает мухомор
     if time.time() - start_time >= 3.5:
         start_time = time.time()
         new_mukhomor(mukhomor)
         draw_mukhomor(screen, mukhomor)
     if time.time() - game_start_time > 30:
         finished = True
-    # После зачернения экрана снова рисуем на нём мухомор, уже сместившийся
     merge_mukhomor(screen, mukhomor)
-    #Обновляем экран
     pygame.display.update()
 
-# Выходим из окна игры
 pygame.quit()
 
-# Запускаем алгоритм работы с результатами
 game_over(score)
