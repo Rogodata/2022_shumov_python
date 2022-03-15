@@ -34,14 +34,22 @@ def set_score(score):
 def game_over(score):
     print("Congratulations!")
     set_score(score)
-    with open('D:/2022_shumov_python/lab4/leader_table.txt', 'w') as f:
-        f.write('did it!!!!!!!!!!!!!!!!!!')
+    with open('D:/2022_shumov_python/lab4/leader_table.txt', 'r') as f:
+        lines = f.readlines()
+        player = lines[-1].split()[0]
+        high_score = int(lines[-1].split()[1])
+    print("existing highscore is " + str(high_score) + " by " + str(player))
+    if score > high_score:
+        print("You managed to set the highscore!")
+        name = str(input("tell us your name:"))
+        with open('D:/2022_shumov_python/lab4/leader_table.txt', 'a') as f:
+            f.write("\n" + name + ' ' + str(score))
 
 def timer(surface, measured_time):
     pygame.font.init()  # you have to call this at the start,
     # if you want to use this module.
     myfont = pygame.font.SysFont('Comic Sans MS', 30)
-    textsurface = myfont.render(str(30.0 - (time.time() - measured_time)), False, (0, 255, 0))
+    textsurface = myfont.render("time left" + str(30.0 - (time.time() - measured_time)), False, (0, 255, 0))
     surface.blit(textsurface, (0, 0))
 
 def new_mukhomor(mukhomor_array):
@@ -95,10 +103,8 @@ new_mukhomor(mukhomor)
 def mergeballs(surface, balls_array, balls_number):
     for i in range(balls_number):
         if balls_array[i][0] > 1200 - balls_array[i][2] or balls_array[i][0] < balls_array[i][2]:
-            #balls_array[i][4] = - balls_array[i][4]
             balls_array[i][4] = -copysign(randint(abs(balls_array[i][4]), 5), balls_array[i][4])
         if balls_array[i][1] > 900 - balls_array[i][2] or balls_array[i][1] < balls_array[i][2]:
-            #balls_array[i][5] = - balls_array[i][5]
             balls_array[i][5] = -copysign(randint(abs(balls_array[i][5]), 5), balls_array[i][5])
         balls_array[i][0] += balls_array[i][4]
         balls_array[i][1] += balls_array[i][5]
@@ -177,7 +183,6 @@ while not finished:
     merge_mukhomor(screen, mukhomor)
     pygame.display.update()
 
-game_over(score)
-
-
 pygame.quit()
+
+game_over(score)
