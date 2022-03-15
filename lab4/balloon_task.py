@@ -236,7 +236,7 @@ print("How many balls do you want to see on the screen at once? (number)")
 balls_quantity = int(input("number:"))
 '''game lasts for 30 seconds'''
 
-'''Время начала игры. Первое - для вызова мухомора, второе - глобальное для игрока'''
+'''Время начала игры. Первое - для вызова мухомора, второе - для подсчёта таймера'''
 start_time = time.time()
 game_start_time = time.time()
 
