@@ -5,6 +5,11 @@ import pygame.draw as dr
 from random import randint
 import time
 
+'''
+*После каждого удара о стенку шарик может увеличить скорость!
+*мухомор - сложная мишень
+'''
+
 pygame.init()
 
 FPS = 60
@@ -29,11 +34,15 @@ def set_score(score):
 def game_over(score):
     print("Congratulations!")
     set_score(score)
-    with open('D:/2022_shumov_python/lab4/leader_table.txt', 'w') as f:
-        f.write("did it")
+    with open('leader_table.txt', 'w') as f:
+        f.write('did it')
 
-
-
+def timer(surface, measured_time):
+    pygame.font.init()  # you have to call this at the start,
+    # if you want to use this module.
+    myfont = pygame.font.SysFont('Comic Sans MS', 30)
+    textsurface = myfont.render(str(30.0 - (time.time() - measured_time)), False, (0, 255, 0))
+    surface.blit(textsurface, (0, 0))
 
 def new_mukhomor(mukhomor_array):
     mukhomor_array[0] = randint(30, 450)
@@ -86,9 +95,11 @@ new_mukhomor(mukhomor)
 def mergeballs(surface, balls_array, balls_number):
     for i in range(balls_number):
         if balls_array[i][0] > 1200 - balls_array[i][2] or balls_array[i][0] < balls_array[i][2]:
-            balls_array[i][4] = - balls_array[i][4]
+            #balls_array[i][4] = - balls_array[i][4]
+            balls_array[i][4] = -copysign(randint(abs(balls_array[i][4]), 5), balls_array[i][4])
         if balls_array[i][1] > 900 - balls_array[i][2] or balls_array[i][1] < balls_array[i][2]:
-            balls_array[i][5] = - balls_array[i][5]
+            #balls_array[i][5] = - balls_array[i][5]
+            balls_array[i][5] = -copysign(randint(abs(balls_array[i][5]), 5), balls_array[i][5])
         balls_array[i][0] += balls_array[i][4]
         balls_array[i][1] += balls_array[i][5]
         dr.circle(surface, balls_array[i][3], (balls_array[i][0], balls_array[i][1]),
@@ -146,9 +157,9 @@ for i in range(balls_quantity):
 score = 0
 while not finished:
     clock.tick(FPS)
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            game_over(score)
             finished = True
         elif event.type == pygame.MOUSEBUTTONDOWN:
             (x0, y0) = event.pos
@@ -156,6 +167,7 @@ while not finished:
             score = mukhomor_shot(x0, y0, score, mukhomor)
     screen.fill(BLACK)
     mergeballs(screen, balls, balls_quantity)
+    timer(screen, game_start_time)
     if time.time() - start_time >= 3.5:
         start_time = time.time()
         new_mukhomor(mukhomor)
