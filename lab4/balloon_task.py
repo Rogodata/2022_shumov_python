@@ -15,6 +15,8 @@ pygame.init()
 FPS = 60
 screen = pygame.display.set_mode((1200, 900))
 
+
+'''Описываем цвета'''
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 YELLOW = (255, 255, 0)
@@ -24,17 +26,19 @@ CYAN = (0, 255, 255)
 BLACK = (0, 0, 0)
 COLORS = [RED, BLUE, YELLOW, GREEN, MAGENTA, CYAN]
 
+'''Счёт игры'''
 score = 0
 
-start_time = time.time()
+
 
 
 def game_over(score_number):
-    '''
+    """
     Завершает игру, выводит набранные очки в чат, выводит в чат рекорд и имя игрока, поставившего его.
-    Если рекорд в ходе игры был побит, то теперь предлагается вписать имя текущего игрока для добавления его в файл с лидерами
+    Если рекорд в ходе игры был побит, то теперь предлагается вписать имя текущего игрока для добавления его
+    в файл с лидерами
     :param score_number: число очков, полученных игроком на данный момент
-    '''
+    """
     print("Congratulations!")
     print("score is: " + str(score_number))
     with open('/2022_shumov_python/lab4/leader_table.txt', 'r') as f:
@@ -50,11 +54,11 @@ def game_over(score_number):
 
 
 def timer(surface, measured_time):
-    '''
+    """
     Функция, выводящая оставшееся до конца время на экран.
     :param surface: объект pygame.surface
     :param measured_time: Время от которого начинается отсчёт(в данном случае - старт игры)
-    '''
+    """
     pygame.font.init()
     myfont = pygame.font.SysFont('Comic Sans MS', 30)
     textsurface = myfont.render("time left" + str(30.0 - (time.time() - measured_time)), False, (0, 255, 0))
@@ -62,32 +66,31 @@ def timer(surface, measured_time):
 
 
 def new_mukhomor(mukhomor_array):
-    '''
+    """
     Мухомор (сложная мишень) изначально определяется данной функцией
     Точнее определяются "поля" мухомора, характеризующие его состояние
     :param mukhomor_array: это массив определяющий состояние мухомора
-    '''
+    """
     mukhomor_array[0] = randint(30, 450)
     mukhomor_array[1] = randint(-60, -30)
     mukhomor_array[2] = 70
     mukhomor_array[3] = 40
     mukhomor_array[4] = randint(3, 5)
     mukhomor_array[5] = 0
-    mukhomor_array[6] = 0
 
 
 def draw_mukhomor(surface, mukhomor_array):
-    '''
+    """
     рисует мухомор (его характеристики расписаны далее и представлены в виде списка)
-    Сначала рисуется о
+    Сначала рисуется мухомор на виртуальной картинке, а затем картинка вклеивается на наш экран
     :param surface: объект pygame.surface
     :param mukhomor_array: Это список значений, характеризующих мухомор
-    '''
+    (конкретно написано в описании к экземпляру списка)
+    """
     x = mukhomor_array[0]
     y = mukhomor_array[1]
     lx = mukhomor_array[2]
     ly = mukhomor_array[3]
-    angle = mukhomor_array[6]
     shape_surf = pygame.Surface([max(lx, ly), max(lx, ly)], pygame.SRCALPHA)
     dr.ellipse(shape_surf, (160, 160, 160), [lx / 2 - ly / 2, 0, ly, lx])
     dr.ellipse(shape_surf, (104, 102, 103), [lx / 2 - ly / 2, 0, ly, lx], width=1)
@@ -96,17 +99,16 @@ def draw_mukhomor(surface, mukhomor_array):
     dr.ellipse(shape_surf, (255, 255, 255), [lx / 4, ly / 4, lx / 8, ly / 6])
     dr.ellipse(shape_surf, (255, 255, 255), [lx / 2, ly / 3, lx / 6, ly / 7])
     dr.ellipse(shape_surf, (255, 255, 255), [3 * lx / 4, ly / 4, lx / 6, ly / 7])
-    rotated_surf = pygame.transform.rotate(shape_surf, angle)
-    surface.blit(rotated_surf, dest=[x, y])
+    surface.blit(shape_surf, dest=[x, y])
 
 
 def new_ball(surface, balls_array, number):
-    '''
+    """
     Рисует шарик с заданными в виде списка характеристиками. На вход подаётся непосредственно список шариков
     :param surface: объект pygame.surface
     :param balls_array: список списков, характеризующих шары
     :param number: номер текущего списка в массиве списков (номер шара, который мы хотим создать)
-    '''
+    """
     balls_array[number][2] = randint(20, 100)
     balls_array[number][0] = randint(100, 1100)
     balls_array[number][1] = randint(100, 800)
@@ -129,7 +131,8 @@ def new_ball(surface, balls_array, number):
 '''
 balls = []
 '''
-Массив, определяющий состояние мухомора. Изначально все значения заданы нулями но затем, после подачи в функцию new_mukhomor
+список, определяющий состояние мухомора. Изначально все значения заданы нулями но затем, после подачи в функцию
+new_mukhomor
 каждое значение будет определено
 Ячейки с соттветствующим индексом хранят:
 0 - x - координата х правого верхнего угла, в который вписан гриб
@@ -138,20 +141,19 @@ balls = []
 3 - ly - удвоенная малая полуось эллипса шляпки мухомора
 4 - Vx - скорость изображения по оси х
 5 - Vy - скорость изображения по оси y
-6 - angle - угол поворота картинки
 '''
-mukhomor = [0, 0, 0, 0, 0, 0, 0]
+mukhomor = [0, 0, 0, 0, 0, 0]
 new_mukhomor(mukhomor)
 
 
 def mergeballs(surface, balls_array, balls_number):
-    '''
+    """
     Данная функция осуществлет проход по массиву шариков с целью развернуть те, что долетели до стенок и снова вывести
     все шары на экран для его покадрового обновления (отрисовать их)
     :param surface: объект pygame.surface
     :param balls_array: массив шариков
     :param balls_number: оличсетво шариков на экране (является количсетвом элементов в массиве шаров)
-    '''
+    """
     for i in range(balls_number):
         if balls_array[i][0] > 1200 - balls_array[i][2] or balls_array[i][0] < balls_array[i][2]:
             balls_array[i][4] = -copysign(randint(abs(balls_array[i][4]), 5), balls_array[i][4])
@@ -164,12 +166,12 @@ def mergeballs(surface, balls_array, balls_number):
 
 
 def merge_mukhomor(surface, mukhomor_array):
-    '''
+    """
     Данная функция переотрисовывает мухомор при обновлении экрана с учётом его скорости.
     Заметим, что он движется с ускорением
     :param surface: объект pygame.surface
     :param mukhomor_array: Это массив, определяющий мухомор (его положение)
-    '''
+    """
     mukhomor_array[0] += mukhomor_array[4]
     mukhomor_array[5] += 10 / FPS
     mukhomor_array[1] += mukhomor_array[5]
@@ -177,7 +179,7 @@ def merge_mukhomor(surface, mukhomor_array):
 
 
 def find_shot(surface, x_pos, y_pos, balls_array, balls_number, score_number):
-    '''
+    """
     Данная функция проверяет, попали ли мы по шарику, то есть смотрит лежит ли точка с переданными в функцию
     координатами внутри какого-нибудь из шаров, все из которых переданы в функцию списком списков. Если мы попали,
      число очков увеличивается на 1 и пишется соответствующая надпись ('Click! You did it')
@@ -186,9 +188,8 @@ def find_shot(surface, x_pos, y_pos, balls_array, balls_number, score_number):
     :param y_pos: координата y точки, в которой произошло событие
     :param balls_array: список содержащий списки, охарактеризовывающие шары
     :param balls_number: число шаров
-    :param score_number: текущее число очков
-    :return:
-    '''
+    :param score_number: текущее число очков, набранное игроком
+    """
     for i in range(balls_number):
         if (x_pos - balls_array[i][0]) ** 2 + (y_pos - balls_array[i][1]) ** 2 <= balls_array[i][2] ** 2:
             print('Click! You did it')
@@ -198,18 +199,33 @@ def find_shot(surface, x_pos, y_pos, balls_array, balls_number, score_number):
 
 
 def mukhomor_shot(x_pos, y_pos, score_number, mukhomor_array):
+    """
+    Данная функция проверяет, попали ли мы по мухомору и, если попали, то в какую часть.
+    Проверка ведётся сравнивая сумму расстояний от точки события до фокусов эллипсв (ножки или шляпки гриба)
+    с удвоенной длиной полуоси и если сумма расстояний меньше, то точка лежит внутри эллипса.
+    Если мы попали по шляпке, то в чат пишется (Cap!) и к теккущим очкам игрока прибавляется 1,
+    если же мы попали по ножке (по той части, что не перекрыта шляпкой, то к текущим очкам прибавляется 3
+    и в чат пишется (leg!!!!) В данном случае в функции координаты точки события переводятся в аналогичные
+    в системе коррдинат прямоугольника (верхний левый угол и две стороны), в который вписан данный мухомор
+    (стороны прямоугольника параллельны сторонам экрана, шляпка вписана по касательной к прямоугольнику)
+    :param x_pos: координата x точки, в которой произошло событие
+    :param y_pos: координата y точки, в которой произошло событие
+    :param score_number: текущее число очков, набранное игроком
+    :param mukhomor_array: Список, характеризующий мухомор
+    """
     c = sqrt((mukhomor_array[2] / 2) ** 2 - (mukhomor_array[3] / 2) ** 2)
     x_pos -= mukhomor_array[0]
     y_pos -= mukhomor_array[1]
     if (x_pos - (mukhomor_array[2] / 2 - c)) ** 2 + (x_pos - (mukhomor_array[2] / 2 + c)) ** 2 + 2 * (
             (y_pos - mukhomor_array[3] / 2) ** 2) <= mukhomor_array[2] ** 2:
-        print('Head!')
+        print('Cap!')
         score_number += 1
     elif (y_pos - (mukhomor_array[2] / 2 - c)) ** 2 + (y_pos - (mukhomor_array[2] / 2 + c)) ** 2 + 2 * (
             (x_pos - mukhomor_array[2] / 2) ** 2) <= mukhomor_array[2] ** 2:
-        print("tail!!!!")
+        print("Leg!!!!")
         score_number += 3
     return score_number
+
 
 '''Пользователю предлагается ввести чило шаров, одновременно находящихся на экране'''
 pygame.display.update()
@@ -218,37 +234,50 @@ finished = False
 
 print("How many balls do you want to see on the screen at once? (number)")
 balls_quantity = int(input("number:"))
-# game lasts for 30 seconds
-game_start_time = time.time()
-# balls_quantity = 5
+'''game lasts for 30 seconds'''
 
+'''Время начала игры. Первое - для вызова мухомора, второе - глобальное для игрока'''
+start_time = time.time()
+game_start_time = time.time()
+
+'''Создаём новые шары'''
 for j in range(balls_quantity):
     balls.append([0, 0, 0, 0, 0, 0])
     new_ball(screen, balls, j)
 
+
 score = 0
 while not finished:
     clock.tick(FPS)
-
+    '''обрабатываем события'''
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             finished = True
         elif event.type == pygame.MOUSEBUTTONDOWN:
+            # получили точку события
             (x0, y0) = event.pos
+            # проверяем, лежит ли она внутри шара или мухомора
             score = find_shot(screen, x0, y0, balls, balls_quantity, score)
             score = mukhomor_shot(x0, y0, score, mukhomor)
     screen.fill(BLACK)
+    # После зачернения экрана снова рисуем на нём шары, уже сместившиеся
     mergeballs(screen, balls, balls_quantity)
+    # Выводим на экран таймер
     timer(screen, game_start_time)
+    # Раз в три с половиной секунды вылетает мухомор
     if time.time() - start_time >= 3.5:
         start_time = time.time()
         new_mukhomor(mukhomor)
         draw_mukhomor(screen, mukhomor)
     if time.time() - game_start_time > 30:
         finished = True
+    # После зачернения экрана снова рисуем на нём мухомор, уже сместившийся
     merge_mukhomor(screen, mukhomor)
+    #Обновляем экран
     pygame.display.update()
 
+# Выходим из окна игры
 pygame.quit()
 
+# Запускаем алгоритм работы с результатами
 game_over(score)
