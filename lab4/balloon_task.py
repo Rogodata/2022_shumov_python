@@ -23,9 +23,16 @@ score = 0
 
 start_time = time.time()
 
-
 def set_score(score):
     print("score is: " + str(score))
+
+def game_over(score):
+    print("Congratulations!")
+    set_score(score)
+    with open('D:/2022_shumov_python/lab4/leader_table.txt', 'w') as f:
+        f.write("did it")
+
+
 
 
 def new_mukhomor(mukhomor_array):
@@ -119,6 +126,7 @@ def mukhomor_shot(x_pos, y_pos, score, mukhomor_array):
         score += 3
     return score
 
+
 pygame.display.update()
 clock = pygame.time.Clock()
 finished = False
@@ -127,6 +135,8 @@ finished = False
 # balls_quantity = int(input("number:"))
 # print("How many difficult targets do you want to see on the screen at once?")
 # targets_quantity = int(input("number:"))
+# game lasts for 30 seconds
+game_start_time = time.time()
 balls_quantity = 5
 
 for i in range(balls_quantity):
@@ -138,7 +148,7 @@ while not finished:
     clock.tick(FPS)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            set_score(score)
+            game_over(score)
             finished = True
         elif event.type == pygame.MOUSEBUTTONDOWN:
             (x0, y0) = event.pos
@@ -150,7 +160,12 @@ while not finished:
         start_time = time.time()
         new_mukhomor(mukhomor)
         draw_mukhomor(screen, mukhomor)
+    if time.time() - game_start_time > 30:
+        finished  = True
     merge_mukhomor(screen, mukhomor)
     pygame.display.update()
+
+game_over(score)
+
 
 pygame.quit()
