@@ -32,7 +32,7 @@ def game_over(score_number):
     """
     print("Congratulations!")
     print("score is: " + str(score_number))
-    with open('/2022_shumov_python/lab4/leader_table.txt', 'r') as f:
+    with open('lab4/leader_table.txt', 'r') as f:
         lines = f.readlines()
         player = lines[-1].split()[0]
         high_score = int(lines[-1].split()[1])
@@ -40,7 +40,7 @@ def game_over(score_number):
     if score_number > high_score:
         print("You managed to set the highscore!")
         name = str(input("tell us your name:"))
-        with open('/2022_shumov_python/lab4/leader_table.txt', 'a') as f:
+        with open('lab4/leader_table.txt', 'a') as f:
             f.write("\n" + name + ' ' + str(score_number))
 
 
