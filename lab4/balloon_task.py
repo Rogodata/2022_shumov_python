@@ -34,7 +34,7 @@ def set_score(score):
 def game_over(score):
     print("Congratulations!")
     set_score(score)
-    with open('D:/2022_shumov_python/lab4/leader_table.txt', 'r') as f:
+    with open('/2022_shumov_python/lab4/leader_table.txt', 'r') as f:
         lines = f.readlines()
         player = lines[-1].split()[0]
         high_score = int(lines[-1].split()[1])
@@ -42,7 +42,7 @@ def game_over(score):
     if score > high_score:
         print("You managed to set the highscore!")
         name = str(input("tell us your name:"))
-        with open('D:/2022_shumov_python/lab4/leader_table.txt', 'a') as f:
+        with open('/2022_shumov_python/lab4/leader_table.txt', 'a') as f:
             f.write("\n" + name + ' ' + str(score))
 
 def timer(surface, measured_time):
