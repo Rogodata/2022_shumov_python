@@ -34,8 +34,8 @@ def set_score(score):
 def game_over(score):
     print("Congratulations!")
     set_score(score)
-    with open('leader_table.txt', 'w') as f:
-        f.write('did it')
+    with open('D:/2022_shumov_python/lab4/leader_table.txt', 'w') as f:
+        f.write('did it!!!!!!!!!!!!!!!!!!')
 
 def timer(surface, measured_time):
     pygame.font.init()  # you have to call this at the start,
