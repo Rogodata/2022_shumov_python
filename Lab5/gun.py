@@ -71,7 +71,6 @@ class Ball:
         return (obj.x - self.x) ** 2 + (obj.y - self.y) ** 2 < (self.r + obj.r) ** 2
 
 
-
 class Gun:
     def __init__(self, surface):
         self.screen = surface
@@ -114,7 +113,7 @@ class Gun:
             self.color = GREY
 
     def draw(self):
-        dr.line(self.screen, (0, 0, 0), (20, 450),
+        dr.line(self.screen, self.color, (20, 450),
                 (20 + math.cos(self.an) * self.f2_power, 450 + math.sin(self.an) * self.f2_power), width=3)
         # FIXme don't know how to do it
 
@@ -137,14 +136,15 @@ class Target:
         self.y = randint(300, 550)
         self.r = randint(2, 50)
         self.color = RED
+
     # FIXME: don't work!!! How to call this functions when object is created?
 
     def new_target(self):
         """ Инициализация новой цели. """
+        self.live = 1
         self.x = randint(600, 780)
         self.y = randint(300, 550)
         self.r = randint(2, 50)
-        self.color = RED
 
     def hit(self, point=1):
         """Попадание шарика в цель."""
@@ -167,7 +167,7 @@ balls = []
 clock = pygame.time.Clock()
 gun = Gun(screen)
 target = Target(screen)
-target.new_target()
+#target.new_target()
 finished = False
 
 while not finished:
