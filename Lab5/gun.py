@@ -160,7 +160,8 @@ class Target:
         )
 
     def move(self):
-
+        self.x += self.vx
+        self.y -= self.vy
 
 
 pygame.init()
@@ -173,13 +174,13 @@ clock = pygame.time.Clock()
 gun = Gun(screen)
 targets.append(Target(screen))
 targets.append(Target(screen))
-#target.new_target()
 finished = False
 
 while not finished:
     screen.fill(WHITE)
     gun.draw()
     for t in targets:
+        t.move()
         t.draw()
     for b in balls:
         b.draw()
