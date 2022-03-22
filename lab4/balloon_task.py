@@ -103,8 +103,8 @@ def new_ball(surface, balls_array, number):
     balls_array[number][0] = randint(100, 1100)
     balls_array[number][1] = randint(100, 800)
     balls_array[number][3] = COLORS[randint(0, 5)]
-    balls_array[number][4] = (copysign(randint(1, 5), randint(-2, 1)))
-    balls_array[number][5] = (copysign(randint(1, 5), randint(-2, 1)))
+    balls_array[number][4] = (copysign(randint(2, 8), randint(-2, 1)))
+    balls_array[number][5] = (copysign(randint(2, 8), randint(-2, 1)))
     dr.circle(surface, balls_array[number][3], (balls_array[number][0], balls_array[number][1]), balls_array[number][2])
     pygame.display.update()
 
@@ -145,10 +145,14 @@ def mergeballs(surface, balls_array, balls_number):
     :param balls_number: оличсетво шариков на экране (является количсетвом элементов в массиве шаров)
     """
     for i in range(balls_number):
-        if balls_array[i][0] > 1200 - balls_array[i][2] or balls_array[i][0] < balls_array[i][2]:
-            balls_array[i][4] = -copysign(randint(abs(balls_array[i][4]), 5), balls_array[i][4])
-        if balls_array[i][1] > 900 - balls_array[i][2] or balls_array[i][1] < balls_array[i][2]:
-            balls_array[i][5] = -copysign(randint(abs(balls_array[i][5]), 5), balls_array[i][5])
+        if balls_array[i][0] + balls_array[i][4] > 1200 - balls_array[i][2] or balls_array[i][0] + balls_array[i][4] < \
+                balls_array[i][2]:
+            balls_array[i][4] = -copysign(randint(2, 8), balls_array[i][4])
+            balls_array[i][5] = copysign(randint(2, 8), balls_array[i][5])
+        if balls_array[i][1] + balls_array[i][5] > 900 - balls_array[i][2] or balls_array[i][1] + balls_array[i][5] < \
+                balls_array[i][2]:
+            balls_array[i][5] = -copysign(randint(2, 8), balls_array[i][5])
+            balls_array[i][4] = copysign(randint(2, 8), balls_array[i][4])
         balls_array[i][0] += balls_array[i][4]
         balls_array[i][1] += balls_array[i][5]
         dr.circle(surface, balls_array[i][3], (balls_array[i][0], balls_array[i][1]),
