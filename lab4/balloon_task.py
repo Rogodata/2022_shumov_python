@@ -5,7 +5,6 @@ import pygame.draw as dr
 from random import randint
 import time
 
-
 pygame.init()
 
 FPS = 60
