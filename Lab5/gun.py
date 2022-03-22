@@ -114,8 +114,7 @@ class Gun:
 
     def draw(self):
         dr.line(self.screen, self.color, (20, 450),
-                (20 + math.cos(self.an) * self.f2_power, 450 + math.sin(self.an) * self.f2_power), width=3)
-        # FIXme don't know how to do it
+                (20 + math.cos(self.an) * self.f2_power, 450 + math.sin(self.an) * self.f2_power), width=4)
 
     def power_up(self):
         if self.f2_on:
@@ -134,8 +133,10 @@ class Target:
         self.screen = surface
         self.x = randint(600, 780)
         self.y = randint(300, 550)
-        self.r = randint(2, 50)
+        self.r = randint(10, 40)
         self.color = RED
+        self.vx = randint(3, 10)
+        self.vy = randint(3, 10)
 
     # FIXME: don't work!!! How to call this functions when object is created?
 
@@ -158,22 +159,28 @@ class Target:
             self.r
         )
 
+    def move(self):
+
+
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 bullet = 0
 balls = []
+targets = []
 
 clock = pygame.time.Clock()
 gun = Gun(screen)
-target = Target(screen)
+targets.append(Target(screen))
+targets.append(Target(screen))
 #target.new_target()
 finished = False
 
 while not finished:
     screen.fill(WHITE)
     gun.draw()
-    target.draw()
+    for t in targets:
+        t.draw()
     for b in balls:
         b.draw()
     pygame.display.update()
@@ -191,10 +198,11 @@ while not finished:
 
     for b in balls:
         b.move()
-        if b.hittest(target) and target.live:
-            target.live = 0
-            target.hit()
-            target.new_target()
+        for t in targets:
+            if b.hittest(t) and t.live:
+                t.live = 0
+                t.hit()
+                t.new_target()
     gun.power_up()
 
 pygame.quit()

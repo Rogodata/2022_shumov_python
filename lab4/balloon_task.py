@@ -228,7 +228,7 @@ finished = False
 print("How many balls do you want to see on the screen at once? (number)")
 balls_quantity = int(input("number:"))
 
-'''Время начала игры. Первое - для вызова мухомора, второе - для подсчёта таймера'''
+#Время начала игры. Первое - для вызова мухомора, второе - для подсчёта таймера
 start_time = time.time()
 game_start_time = time.time()
 
@@ -239,7 +239,7 @@ for j in range(balls_quantity):
 score = 0
 while not finished:
     clock.tick(FPS)
-    '''обрабатываем события'''
+    #обрабатываем события
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             finished = True
