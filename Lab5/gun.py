@@ -5,7 +5,7 @@ import pygame.draw as dr
 import pygame.surface
 from math import copysign
 
-FPS = 30
+FPS = 60
 
 RED = 0xFF0000
 BLUE = 0x0000FF
@@ -23,14 +23,14 @@ HEIGHT = 600
 
 
 class Ball:
-    def __init__(self, screen:pygame.Surface, x=40, y=450):
+    def __init__(self, surface:pygame.Surface, x=40, y=450):
         """ Конструктор класса ball
 
         Args:
         x - начальное положение мяча по горизонтали
         y - начальное положение мяча по вертикали
         """
-        self.screen = screen
+        self.screen = surface
         self.x = x
         self.y = y
         self.r = 10
@@ -125,8 +125,8 @@ class Gun:
 
     def power_up(self):
         if self.f2_on:
-            if self.f2_power < 50:
-                self.f2_power += 1
+            if self.f2_power < 30:
+                self.f2_power += 0.5
             self.color = RED
         else:
             self.color = GREY
@@ -167,8 +167,12 @@ class Target:
         )
 
     def move(self):
+        if self.x + self.vx > WIDTH - self.r or self.x + self.vx < self.r:
+            self.vx = -self.vx
+        if self.y + self.vy > HEIGHT - self.r or self.y + self.vy < self.r:
+            self.vy = -self.vy
         self.x += self.vx
-        self.y -= self.vy
+        self.y += self.vy
 
 
 pygame.init()
