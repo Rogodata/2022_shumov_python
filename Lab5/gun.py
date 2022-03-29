@@ -23,7 +23,7 @@ HEIGHT = 600
 
 
 class Ball:
-    def __init__(self, screen: pygame.Surface, x=40, y=450):
+    def __init__(self, screen:pygame.Surface, x=40, y=450):
         """ Конструктор класса ball
 
         Args:
@@ -47,9 +47,16 @@ class Ball:
         и стен по краям окна (размер окна 800х600).
         """
         # FIXME
-        self.vy -= 10 / FPS
+        self.vy += 10 / FPS
+        if self.x + self.vx > WIDTH - self.r or self.x + self.vx < self.r:
+            self.vx = -self.vx
+        if self.y + self.vy > HEIGHT - self.r or self.y + self.vy < self.r:
+            self.vy = -self.vy
         self.x += self.vx
-        self.y -= self.vy
+        self.y += self.vy
+        self.live -= 1
+        #if self.live < 0:
+
 
     def draw(self):
         pygame.draw.circle(
@@ -95,10 +102,10 @@ class Gun:
         new_ball.r += 5
         self.an = math.atan2((event.pos[1] - new_ball.y), (event.pos[0] - new_ball.x))
         new_ball.vx = self.f2_power * math.cos(self.an)
-        new_ball.vy = - self.f2_power * math.sin(self.an)
+        new_ball.vy = self.f2_power * math.sin(self.an)
         balls.append(new_ball)
         self.f2_on = 0
-        self.f2_power = 10
+        self.f2_power = 5
 
     def targetting(self, event):
         """Прицеливание. Зависит от положения мыши."""
@@ -118,7 +125,7 @@ class Gun:
 
     def power_up(self):
         if self.f2_on:
-            if self.f2_power < 100:
+            if self.f2_power < 50:
                 self.f2_power += 1
             self.color = RED
         else:
@@ -177,6 +184,7 @@ targets.append(Target(screen))
 finished = False
 
 while not finished:
+    clock.tick(FPS)
     screen.fill(WHITE)
     gun.draw()
     for t in targets:
@@ -185,8 +193,6 @@ while not finished:
     for b in balls:
         b.draw()
     pygame.display.update()
-
-    clock.tick(FPS)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             finished = True
