@@ -23,7 +23,7 @@ HEIGHT = 600
 
 
 class Ball:
-    def __init__(self, surface:pygame.Surface, x=40, y=450):
+    def __init__(self, surface: pygame.Surface, lifetime, x=40, y=450):
         """ Конструктор класса ball
 
         Args:
@@ -36,8 +36,8 @@ class Ball:
         self.r = 10
         self.vx = 0
         self.vy = 0
-        self.color = choice(GAME_COLORS)
-        self.live = 30
+        self.color = GAME_COLORS[randint(1, len(GAME_COLORS) - 1)]
+        self.live = FPS * lifetime
 
     def move(self):
         """Переместить мяч по прошествии единицы времени.
@@ -55,7 +55,10 @@ class Ball:
         self.x += self.vx
         self.y += self.vy
         self.live -= 1
-        #if self.live < 0:
+
+    def get_life(self):
+        return self.live
+
 
 
     def draw(self):
@@ -86,10 +89,10 @@ class Gun:
         self.an = 1
         self.color = GREY
 
-    def fire2_start(self, event):
+    def fire2_start(self):
         self.f2_on = 1
 
-    def fire2_end(self, event):
+    def fire2_end(self, event_o):
         """Выстрел мячом.
 
         Происходит при отпускании кнопки мыши.
@@ -98,22 +101,22 @@ class Gun:
         # FIXME globalov bit ne dolzhno
         global balls, bullet
         bullet += 1
-        new_ball = Ball(self.screen)
+        new_ball = Ball(self.screen, 5)
         new_ball.r += 5
-        self.an = math.atan2((event.pos[1] - new_ball.y), (event.pos[0] - new_ball.x))
+        self.an = math.atan2((event_o.pos[1] - new_ball.y), (event_o.pos[0] - new_ball.x))
         new_ball.vx = self.f2_power * math.cos(self.an)
         new_ball.vy = self.f2_power * math.sin(self.an)
         balls.append(new_ball)
         self.f2_on = 0
         self.f2_power = 5
 
-    def targetting(self, event):
+    def targetting(self, event_o):
         """Прицеливание. Зависит от положения мыши."""
-        if event:
-            if event.pos[0] - 20 != 0:
-                self.an = math.atan((event.pos[1] - 450) / (event.pos[0] - 20))
+        if event_o:
+            if event_o.pos[0] - 20 != 0:
+                self.an = math.atan((event_o.pos[1] - 450) / (event_o.pos[0] - 20))
             else:
-                self.an = copysign(math.pi / 2, event.pos[1] - 450)
+                self.an = copysign(math.pi / 2, event_o.pos[1] - 450)
         if self.f2_on:
             self.color = RED
         else:
@@ -152,7 +155,7 @@ class Target:
         self.live = 1
         self.x = randint(600, 780)
         self.y = randint(300, 550)
-        self.r = randint(2, 50)
+        self.r = randint(10, 40)
 
     def hit(self, point=1):
         """Попадание шарика в цель."""
@@ -201,12 +204,12 @@ while not finished:
         if event.type == pygame.QUIT:
             finished = True
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            gun.fire2_start(event)
+            gun.fire2_start()
         elif event.type == pygame.MOUSEBUTTONUP:
             gun.fire2_end(event)
         elif event.type == pygame.MOUSEMOTION:
             gun.targetting(event)
-
+    survived_balls = []
     for b in balls:
         b.move()
         for t in targets:
@@ -214,6 +217,9 @@ while not finished:
                 t.live = 0
                 t.hit()
                 t.new_target()
+        if b.get_life() >= 0:
+            survived_balls.append(b)
+    balls = survived_balls
     gun.power_up()
 
 pygame.quit()
