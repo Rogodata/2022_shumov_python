@@ -14,6 +14,7 @@ CYAN = 0x00FFCC
 BLACK = (0, 0, 0)
 WHITE = 0xFFFFFF
 GREY = 0x7D7D7D
+DARK_GREEN = 0x5d8900
 GAME_COLORS = [RED, BLUE, YELLOW, GREEN, MAGENTA, CYAN]
 
 WIDTH = 1100
@@ -27,15 +28,16 @@ class Tank:
         self.y = y
         self.fire_angle = 0
         self.ground_angle = 0
-        self.height = 30
+        self.height = 15
         self.width = 50
         self.r = 10
         self.caliber = 3
-        self.color = GREEN
+        self.color = DARK_GREEN
         self.power_on = 0
         self.v = 0
         self.wheel_radius = self.width // 10
         self.life = 1
+        self.power = 10
 
     def change_speed(self, v):
         self.v = v
@@ -46,14 +48,15 @@ class Tank:
                                               (self.x + self.width / 2, self.y + self.height / 2),
                                               (self.x - self.width / 2, self.y + self.height / 2),
                                               (self.x - self.width / 2, self.y - self.height / 2)])
-        dr.circle(self.surface, self.color, (self.x, self.y + self.height / 2), self.width / 4)
-        dr.line(self.surface, BLACK, (self.x, self.y + self.height / 2),
-                (self.x + math.cos(self.fire_angle) * self.width / 2, self.y + self.height / 2), width=self.caliber)
+        dr.circle(self.surface, self.color, (self.x, self.y - self.height / 2), self.width / 4)
+        dr.line(self.surface, BLACK, (self.x, self.y - self.height / 2),
+                (self.x + math.cos(self.fire_angle) * self.width / 2,
+                 (self.y - self.height / 2) + math.sin(self.fire_angle) * self.width / 2), width=self.caliber)
         dr.circle(self.surface, BLACK,
                   (self.x - self.width / 2 + self.wheel_radius, self.y + self.height / 2 + self.wheel_radius),
                   self.wheel_radius)
         dr.circle(self.surface, BLACK,
-                  (self.x + self.width / 2 + self.wheel_radius, self.y + self.height / 2 + self.wheel_radius),
+                  (self.x + self.width / 2 - self.wheel_radius, self.y + self.height / 2 + self.wheel_radius),
                   self.wheel_radius)
 
     def move(self):
@@ -69,6 +72,7 @@ class Tank:
         else:
             self.fire_angle = math.copysign(math.pi / 2, event_o.pos[1] - 450)
     def find_ground_angle'''
+
 
 class Bullet:
     def __init__(self, surface, x, y, vx, vy, r):
@@ -92,50 +96,51 @@ class Bullet:
         self.x += self.vx
         self.y += self.vy
 
+
 class PlayerTank(Tank):
     def move_by_keyboard(self, moving_event):
-        if moving_event.key == pygame.K.left:
+        if moving_event.key == pygame.K_RIGHT:
             self.change_speed(4)
-        if moving_event.key == pygame.K.left:
+        if moving_event.key == pygame.K_a:
             self.change_speed(-4)
         self.move()
+    def targetting(self, target_event):
+        if target_event.pos[0] - self.x != 0:
+            self.fire_angle = math.atan((target_event.pos[1] - self.y) / (target_event.pos[0] - self.x))
+        else:
+            self.fire_angle = -math.copysign(math.pi / 2, target_event.pos[1] - self.y)
+
+    #def find_ground_angle
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
 finished = False
 
-player_start_x_pos = 0
-player_start_Y_pos = 0
-player = PlayerTank(screen, )
+PLAYER_START_POS_X = 110
+PLAYER_START_POS_Y = 220
+player = PlayerTank(screen, PLAYER_START_POS_X, PLAYER_START_POS_Y)
 
 while not finished:
     clock.tick(FPS)
     screen.fill(WHITE)
-    #ТУТ рисуем
+    # ТУТ рисуем
+    player.draw()
     pygame.display.update()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             finished = True
-        elif event.type == pygame.MOUSEBUTTONDOWN:
+        elif event.type == pygame.MOUSEMOTION:
+            player.targetting(event)
+        elif event.type == pygame.KEYDOWN:
+            player.move_by_keyboard(event)
+    # gun.power_up()
+
+pygame.quit()
+
+'''elif event.type == pygame.MOUSEBUTTONDOWN:
             gun.fire2_start()
         elif event.type == pygame.MOUSEBUTTONUP:
             gun.fire2_end(event)
         elif event.type == pygame.MOUSEMOTION:
-            gun.targetting(event)
-        elif event.type == pygame.KEYDOWN:
-            gun.targetting(event)
-    survived_balls = []
-    for b in balls:
-        b.move()
-        for t in targets:
-            if b.hittest(t) and t.live:
-                t.live = 0
-                t.hit()
-                t.new_target()
-        if b.get_life() >= 0:
-            survived_balls.append(b)
-    balls = survived_balls
-    gun.power_up()
-
-pygame.quit()
+            gun.targetting(event)'''
