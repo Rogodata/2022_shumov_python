@@ -99,18 +99,27 @@ class Bullet:
 
 class PlayerTank(Tank):
     def move_by_keyboard(self, moving_event):
-        if moving_event.key == pygame.K_RIGHT:
-            self.change_speed(4)
-        if moving_event.key == pygame.K_a:
-            self.change_speed(-4)
-        self.move()
-    def targetting(self, target_event):
-        if target_event.pos[0] - self.x != 0:
-            self.fire_angle = math.atan((target_event.pos[1] - self.y) / (target_event.pos[0] - self.x))
+        if moving_event.key == pygame.K_d:
+            self.change_speed(2)
+        elif moving_event.key == pygame.K_a:
+            self.change_speed(-2)
         else:
-            self.fire_angle = -math.copysign(math.pi / 2, target_event.pos[1] - self.y)
+            self.v = 0
 
-    #def find_ground_angle
+    def stop_by_keyboard(self, stopping_event):
+        if stopping_event.key == pygame.K_d or stopping_event.key == pygame.K_a:
+            self.change_speed(0)
+
+    def targetting(self, target_event):
+        if target_event.pos[0] - self.x > 0:
+            self.fire_angle = math.atan((target_event.pos[1] - self.y) / (target_event.pos[0] - self.x))
+        elif target_event.pos[0] - self.x < 0:
+            self.fire_angle = math.atan((target_event.pos[1] - self.y) / (target_event.pos[0] - self.x)) - math.pi
+        else:
+            self.fire_angle = math.copysign(math.pi / 2, target_event.pos[1] - self.y)
+
+    # def find_ground_angle
+
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -118,7 +127,7 @@ clock = pygame.time.Clock()
 finished = False
 
 PLAYER_START_POS_X = 110
-PLAYER_START_POS_Y = 220
+PLAYER_START_POS_Y = 420
 player = PlayerTank(screen, PLAYER_START_POS_X, PLAYER_START_POS_Y)
 
 while not finished:
@@ -130,11 +139,14 @@ while not finished:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             finished = True
-        elif event.type == pygame.MOUSEMOTION:
-            player.targetting(event)
         elif event.type == pygame.KEYDOWN:
             player.move_by_keyboard(event)
+        elif event.type == pygame.KEYUP:
+            player.stop_by_keyboard(event)
+        elif event.type == pygame.MOUSEMOTION:
+            player.targetting(event)
     # gun.power_up()
+    player.move()
 
 pygame.quit()
 
