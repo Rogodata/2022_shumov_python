@@ -16,3 +16,7 @@
 взрывы через рандомные круги
 
 ракетная струя птура
+
+yjdsq rjycnhernjh ltkftnc yfghbvth dspjdjv cnfhjuj b ljjghtltktybtv gjktq
+
+Новый конструктор объявляется, например, вызовом старого и переопределением полей

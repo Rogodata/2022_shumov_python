@@ -76,6 +76,9 @@ class Tank:
             self.fire_angle = math.copysign(math.pi / 2, event_o.pos[1] - 450)
     def find_ground_angle'''
 
+class KeyboardOperatedEntity:
+    def __init__(self, button1, button2):
+        self
 
 class Bullet:
     def __init__(self, surface, x, y, vx, vy, r):
@@ -101,7 +104,7 @@ class Bullet:
 
 
 class PlayerTank(Tank):
-    def set_ptur(self):
+    def ini(self):
         self.ptur = 1
 
     def move_by_keyboard(self, moving_event):
