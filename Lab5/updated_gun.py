@@ -141,7 +141,7 @@ class Landshaft:
 
 
 class Ptur:
-    def __init__(self, surface, x, y, v, angle, d=3, l=10):
+    def __init__(self, surface, x, y, v, angle, d=5, l=15):
         self.screen = surface
         self.length = l
         self.diam = d
@@ -152,12 +152,13 @@ class Ptur:
         self.y = y
 
     def draw(self):
-        dr.polygon(self.screen, BLACK, [(self.x - self.length / 2, self.y - self.diam / 2),
-                                        (self.x + self.length / 2, self.y - self.diam / 2),
-                                        (self.x + self.length / 2, self.y + self.diam / 2),
-                                        (self.x - self.length / 2, self.y + self.diam / 2),
-                                        (self.x - self.length / 2, self.y - self.diam / 2)])
-        dr.circle(self.screen, BLACK, (self.x + self.length / 2, self.y - self.diam / 2), self.diam)
+        dr.line(self.screen, BLACK,
+                (self.x - math.cos(self.angle) * self.length / 2, self.y - math.sin(self.angle) * self.length / 2),
+                (self.x + math.cos(self.angle) * self.length / 2, self.y + math.sin(self.angle) * self.length / 2),
+                width=self.diam)
+        dr.circle(self.screen, RED,
+                  (self.x + math.cos(self.angle) * self.length / 2, self.y + math.sin(self.angle) * self.length / 2),
+                  self.diam * 3 // 4)
 
     def move_by_keyboard(self, moving_event):
         if moving_event.key == pygame.K_w:
@@ -180,7 +181,7 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT + INTERFACE_HEIGHT))
 clock = pygame.time.Clock()
 finished = False
 
-ptur = Ptur(screen, 20, 20, 1, 0)
+ptur = Ptur(screen, 20, 20, 2, 0)
 player = PlayerTank(screen, PLAYER_START_POS_X, PLAYER_START_POS_Y)
 interface = Interface(screen, player)
 
