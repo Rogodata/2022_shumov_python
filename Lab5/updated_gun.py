@@ -15,10 +15,16 @@ BLACK = (0, 0, 0)
 WHITE = 0xFFFFFF
 GREY = 0x7D7D7D
 DARK_GREEN = 0x5d8900
+INTERFACE_COLOR = 0x5d4a33
 GAME_COLORS = [RED, BLUE, YELLOW, GREEN, MAGENTA, CYAN]
 
 WIDTH = 1100
-HEIGHT = 700
+HEIGHT = 600
+INTERFACE_HEIGHT = 150
+
+# FIXME вырази через ширину и высоту
+PLAYER_START_POS_X = 110
+PLAYER_START_POS_Y = 420
 
 
 class Tank:
@@ -38,9 +44,6 @@ class Tank:
         self.wheel_radius = self.width // 10
         self.life = 1
         self.power = 10
-
-    def change_speed(self, v):
-        self.v = v
 
     def draw(self):
         dr.polygon(self.surface, self.color, [(self.x - self.width / 2, self.y - self.height / 2),
@@ -98,17 +101,18 @@ class Bullet:
 
 
 class PlayerTank(Tank):
+    def set_ptur(self):
+        self.ptur = 1
+
     def move_by_keyboard(self, moving_event):
         if moving_event.key == pygame.K_d:
-            self.change_speed(2)
+            self.v = 2
         elif moving_event.key == pygame.K_a:
-            self.change_speed(-2)
-        else:
-            self.v = 0
+            self.v = -2
 
     def stop_by_keyboard(self, stopping_event):
         if stopping_event.key == pygame.K_d or stopping_event.key == pygame.K_a:
-            self.change_speed(0)
+            self.v = 0
 
     def targetting(self, target_event):
         if target_event.pos[0] - self.x > 0:
@@ -121,32 +125,88 @@ class PlayerTank(Tank):
     # def find_ground_angle
 
 
+class Interface:
+    def __init__(self, surface, player_tank):
+        self.e = 1
+        self.screen = surface
+        self.tank = player_tank
+
+    def draw(self):
+        dr.rect(self.screen, INTERFACE_COLOR, (0, HEIGHT, WIDTH, INTERFACE_HEIGHT))
+
+
+class Landshaft:
+    def __init__(self, surface):
+        self.screen = surface
+
+
+class Ptur:
+    def __init__(self, surface, x, y, v, angle, d = 3, l = 10):
+        self.screen = surface
+        self.length = l
+        self.diam = d
+        self.angle = angle
+        self.omega = 0
+        self.v = v
+        self.x = x
+        self.y = y
+
+    def draw(self):
+        dr.polygon(self.screen, BLACK, [(self.x - self.length / 2, self.y - self.diam / 2),
+                                        (self.x + self.length / 2, self.y - self.diam / 2),
+                                        (self.x + self.length / 2, self.y + self.diam / 2),
+                                        (self.x - self.length / 2, self.y + self.diam / 2),
+                                        (self.x - self.length / 2, self.y - self.diam / 2)])
+        dr.ellipse(self.screen, BLACK, ((self.x, self.y - self.diam / 2),
+                                        (self.length, self.diam)))
+
+    def move_by_keyboard(self, moving_event):
+        if moving_event.key == pygame.K_w:
+            self.omega = math.pi / (2 * FPS)
+        elif moving_event.key == pygame.K_s:
+            self.omega = - math.pi / (2 * FPS)
+
+    def stop_by_keyboard(self, stopping_event):
+        if stopping_event.key == pygame.K_w or stopping_event.key == pygame.K_s:
+            self.omega = 0
+
+    def move(self):
+        self.angle += self.omega
+        self.x += self.v * math.cos(self.angle)
+        self.y += self.v * math.sin(self.angle)
+
+
 pygame.init()
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+screen = pygame.display.set_mode((WIDTH, HEIGHT + INTERFACE_HEIGHT))
 clock = pygame.time.Clock()
 finished = False
 
-PLAYER_START_POS_X = 110
-PLAYER_START_POS_Y = 420
+ptur= Ptur(screen, 20, 20, 1, 0)
 player = PlayerTank(screen, PLAYER_START_POS_X, PLAYER_START_POS_Y)
+interface = Interface(screen, player)
 
 while not finished:
     clock.tick(FPS)
     screen.fill(WHITE)
     # ТУТ рисуем
     player.draw()
+    ptur.draw()
+    interface.draw()
     pygame.display.update()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             finished = True
         elif event.type == pygame.KEYDOWN:
             player.move_by_keyboard(event)
+            ptur.move_by_keyboard(event)
         elif event.type == pygame.KEYUP:
             player.stop_by_keyboard(event)
+            ptur.stop_by_keyboard(event)
         elif event.type == pygame.MOUSEMOTION:
             player.targetting(event)
     # gun.power_up()
     player.move()
+    ptur.move()
 
 pygame.quit()
 
