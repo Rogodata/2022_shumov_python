@@ -2,10 +2,12 @@ from random import randint
 import pygame.draw as dr
 import pygame
 import math
+import time
 
 FPS = 60
 
 RED = 0xFF0000
+LIGHT_BLUE = 0x55e2e3
 BLUE = 0x0000FF
 YELLOW = 0xFFC91F
 GREEN = 0x00FF00
@@ -78,13 +80,13 @@ class Tank:
 
 
 class Bullet:
-    def __init__(self, surface, x, y, vx, vy, r):
+    def __init__(self, surface, x, y, v, angle, r):
         self.screen = surface
         self.x = x
         self.y = y
         self.r = r
-        self.vx = vx
-        self.vy = vy
+        self.vx = v * math.cos(angle)
+        self.vy = v * math.sin(angle)
         self.color = BLACK
 
     def draw(self):
@@ -101,8 +103,11 @@ class Bullet:
 
 
 class PlayerTank(Tank):
-    def ini(self):
-        self.ptur = 1
+    def __init__(self, surface, x, y):
+        Tank.__init__(self, surface, x, y)
+        self.ptur = 0
+        self.timer_s = 0
+        self.reload_rate = 5
 
     def move_by_keyboard(self, moving_event):
         if moving_event.key == pygame.K_d:
@@ -121,6 +126,25 @@ class PlayerTank(Tank):
             self.fire_angle = math.atan((target_event.pos[1] - self.y) / (target_event.pos[0] - self.x)) - math.pi
         else:
             self.fire_angle = math.copysign(math.pi / 2, target_event.pos[1] - self.y)
+
+    def power_up(self):
+        self.power_on = 1
+        self.timer_s = time.time()
+
+    def empower(self):
+        if self.power_on:
+            if time.time() - self.timer_s > self.reload_rate:
+                self.power += 10
+                self.timer_s = time.time()
+
+    def fire(self, bullets_array):
+        bullet = Bullet(self.surface, self.x + math.cos(self.fire_angle) * self.width / 2,
+                        self.y - self.height / 2 + math.sin(self.fire_angle) * self.width / 2, self.power,
+                        self.fire_angle, self.caliber // 2)
+        bullets_array.append(bullet)
+        self.power = 10
+        self.power_on = 0
+        return bullets_array
 
     # def find_ground_angle
 
@@ -159,6 +183,9 @@ class Ptur:
         dr.circle(self.screen, RED,
                   (self.x + math.cos(self.angle) * self.length / 2, self.y + math.sin(self.angle) * self.length / 2),
                   self.diam * 3 // 4)
+        explosion = Explosion(self.screen, 3, 1, self.x - math.cos(self.angle) * self.length / 2,
+                              self.y - math.sin(self.angle) * self.length / 2, 3)
+        explosion.draw()
 
     def move_by_keyboard(self, moving_event):
         if moving_event.key == pygame.K_w:
@@ -176,10 +203,30 @@ class Ptur:
         self.y += self.v * math.sin(self.angle)
 
 
+class Explosion:
+    def __init__(self, surface, number, lifetime, x, y, r, minr=1, color=YELLOW):
+        self.screen = surface
+        self.number = number
+        self.lifetime = lifetime
+        self.x = x
+        self.y = y
+        self.r = r
+        self.minr = minr
+        self.color = color
+
+    def draw(self):
+        for i in range(self.number):
+            dr.circle(self.screen, self.color, (self.x + randint(-self.r, self.r), self.y + randint(-self.r, self.r)),
+                      randint(self.minr, self.r // 3))
+
+
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT + INTERFACE_HEIGHT))
 clock = pygame.time.Clock()
 finished = False
+
+bullets = []
+enemy_tanks = []
 
 ptur = Ptur(screen, 20, 20, 2, 0)
 player = PlayerTank(screen, PLAYER_START_POS_X, PLAYER_START_POS_Y)
@@ -187,8 +234,11 @@ interface = Interface(screen, player)
 
 while not finished:
     clock.tick(FPS)
-    screen.fill(WHITE)
+    screen.fill(LIGHT_BLUE)
     # ТУТ рисуем
+    for b in bullets:
+        b.move()
+        b.draw()
     player.draw()
     ptur.draw()
     interface.draw()
@@ -204,7 +254,11 @@ while not finished:
             ptur.stop_by_keyboard(event)
         elif event.type == pygame.MOUSEMOTION:
             player.targetting(event)
-    # gun.power_up()
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            player.power_up()
+        elif event.type == pygame.MOUSEBUTTONUP:
+            bullets = player.fire(bullets)
+    player.empower()
     player.move()
     ptur.move()
 
