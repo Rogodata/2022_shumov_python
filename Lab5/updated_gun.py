@@ -270,7 +270,7 @@ def merge_tanks(tanks_array):
         if t.alive():
             t.move()
             t.draw()
-            tanks_array.append(tanks_merged)
+            tanks_merged.append(t)
     return tanks_merged
 
 
