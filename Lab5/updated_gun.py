@@ -45,7 +45,7 @@ class Tank:
         self.v = 0
         self.wheel_radius = self.width // 10
         self.life = 1
-        self.power = 0
+        self.power = 10
 
     def draw(self):
         dr.polygon(self.surface, self.color, [(self.x - self.width / 2, self.y - self.height / 2),
@@ -137,7 +137,7 @@ class PlayerTank(Tank):
     def empower(self):
         if self.power_on:
             if time.time() - self.timer_s > self.reload_rate:
-                self.power += 10
+                self.power += 5
                 self.timer_s = time.time()
 
     def fire(self, bullets_array):
@@ -181,8 +181,9 @@ class Ptur(Bullet):
 
     def draw(self):
         dr.line(self.screen, BLACK,
-                (self.x - math.cos(self.angle) * self.length / 2, self.y - math.sin(self.angle) * self.length / 2),
-                (self.x + math.cos(self.angle) * self.length / 2, self.y + math.sin(self.angle) * self.length / 2),
+                (self.x - math.cos(self.angle) * self.length, self.y - math.sin(self.angle) * self.length),
+                #(self.x + math.cos(self.angle) * self.length / 2, self.y + math.sin(self.angle) * self.length / 2),
+                (self.x, self.y),
                 width=self.r)
         dr.circle(self.screen, RED,
                   (self.x + math.cos(self.angle) * self.length / 2, self.y + math.sin(self.angle) * self.length / 2),
@@ -244,6 +245,7 @@ finished = False
 
 bullets = []
 enemy_tanks = []
+
 
 ptur = Ptur(screen, 20, 20, 2, 0)
 player = PlayerTank(screen, PLAYER_START_POS_X, PLAYER_START_POS_Y)
