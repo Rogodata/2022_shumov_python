@@ -20,3 +20,5 @@
 yjdsq rjycnhernjh ltkftnc yfghbvth dspjdjv cnfhjuj b ljjghtltktybtv gjktq
 
 Новый конструктор объявляется, например, вызовом старого и переопределением полей
+
+Не делай перезарядку, итак нормально
