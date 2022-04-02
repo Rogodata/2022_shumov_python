@@ -30,7 +30,7 @@ PLAYER_START_POS_Y = 500
 
 
 class Tank:
-    def __init__(self, surface, x, y, v = 0):
+    def __init__(self, surface, x, y, v=0):
         self.surface = surface
         self.x = x
         self.y = y
@@ -73,14 +73,18 @@ class Tank:
 
     def hittest(self, attack_bullet):
         return (self.x + self.width / 2 > attack_bullet.x > self.x - self.width / 2 and self.y + self.height / 2 >
-                attack_bullet.y > self.y - self.height / 2) or ((attack_bullet.x - self.x) ** 2 + (attack_bullet.y -
-                self.y - self.height / 2) ** 2 < self.r ** 2)
+                attack_bullet.y > self.y - self.height / 2) or \
+               ((attack_bullet.x - self.x) ** 2 + (attack_bullet.y - self.y - self.height / 2) ** 2 < self.r ** 2)
 
     def death(self, explosions_array):
         explosion = Explosion(self.surface, 10, 10, self.x, self.y, self.width // 2, minr=3)
         explosions_array.append(explosion)
         self.life = 0
         self.color = BLACK
+
+    def alive(self):
+        return self.life > 0
+
 
 class Bullet:
     def __init__(self, surface, x, y, v, angle, r):
@@ -97,10 +101,6 @@ class Bullet:
 
     def move(self):
         self.vy += 10 / FPS
-        # if self.x + self.vx > WIDTH - self.r or self.x + self.vx < self.r:
-        #    self.vx = -self.vx
-        # if self.y + self.vy > HEIGHT - self.r or self.y + self.vy < self.r:
-        #    self.vy = -self.vy
         self.x += self.vx
         self.y += self.vy
 
@@ -225,7 +225,7 @@ class Explosion:
         self.color = color
 
     def draw(self):
-        for i in range(self.number):
+        for j in range(self.number):
             dr.circle(self.screen, self.color, (self.x + randint(-self.r, self.r), self.y + randint(-self.r, self.r)),
                       randint(self.minr, self.r // 2))
 
@@ -244,10 +244,15 @@ def merge_ptur(ptur_entity):
     if time.time() - ptur_entity.lived_s < ptur_entity.lifetime:
         ptur_entity.draw()
 
+
 def merge_hits(player_tank, bullets_array, enemy_tanks_array, explosions_array):
     for b in bullets_array:
         if player_tank.hittest(b):
             player_tank.death(explosions_array)
+        for t in enemy_tanks_array:
+            if t.hittest(b):
+                t.death(explosions_array)
+
 
 def merge_explosions(explosions_array):
     explosions_merged = []
@@ -258,6 +263,17 @@ def merge_explosions(explosions_array):
             explosions_merged.append(e)
     return explosions_merged
 
+
+def merge_tanks(tanks_array):
+    tanks_merged = []
+    for t in tanks_array:
+        if t.alive():
+            t.move()
+            t.draw()
+            tanks_array.append(tanks_merged)
+    return tanks_merged
+
+
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT + INTERFACE_HEIGHT))
 clock = pygame.time.Clock()
@@ -266,6 +282,10 @@ finished = False
 bullets = []
 enemy_tanks = []
 explosions = []
+
+for i in range(3):
+    tank = Tank(screen, WIDTH + 100 * i, PLAYER_START_POS_Y, v=-3)
+    enemy_tanks.append(tank)
 
 ptur = Ptur(screen, 20, 20, 2, 0)
 player = PlayerTank(screen, PLAYER_START_POS_X, PLAYER_START_POS_Y)
@@ -276,6 +296,7 @@ while not finished:
     screen.fill(LIGHT_BLUE)
     # ТУТ рисуем
     bullets = merge_bullets(bullets)
+    enemy_tanks = merge_tanks(enemy_tanks)
     merge_ptur(ptur)
     player.draw()
     interface.draw()
