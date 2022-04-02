@@ -30,7 +30,7 @@ PLAYER_START_POS_Y = 500
 
 
 class Tank:
-    def __init__(self, surface, x, y):
+    def __init__(self, surface, x, y, v = 0):
         self.surface = surface
         self.x = x
         self.y = y
@@ -42,7 +42,7 @@ class Tank:
         self.caliber = 3
         self.color = DARK_GREEN
         self.power_on = 0
-        self.v = 0
+        self.v = v
         self.wheel_radius = self.width // 10
         self.life = 1
         self.power = 10
@@ -71,13 +71,16 @@ class Tank:
     def power_start(self):
         self.power_on = 1
 
-    '''def targetting(self):
-        if event_o.pos[0] - 20 != 0:
-            self.fire_angle = math.atan((event_o.pos[1] - 450) / (event_o.pos[0] - 20))
-        else:
-            self.fire_angle = math.copysign(math.pi / 2, event_o.pos[1] - 450)
-    def find_ground_angle'''
+    def hittest(self, attack_bullet):
+        return (self.x + self.width / 2 > attack_bullet.x > self.x - self.width / 2 and self.y + self.height / 2 >
+                attack_bullet.y > self.y - self.height / 2) or ((attack_bullet.x - self.x) ** 2 + (attack_bullet.y -
+                self.y - self.height / 2) ** 2 < self.r ** 2)
 
+    def death(self, explosions_array):
+        explosion = Explosion(self.surface, 10, 10, self.x, self.y, self.width // 2, minr=3)
+        explosions_array.append(explosion)
+        self.life = 0
+        self.color = BLACK
 
 class Bullet:
     def __init__(self, surface, x, y, v, angle, r):
@@ -94,9 +97,9 @@ class Bullet:
 
     def move(self):
         self.vy += 10 / FPS
-        #if self.x + self.vx > WIDTH - self.r or self.x + self.vx < self.r:
+        # if self.x + self.vx > WIDTH - self.r or self.x + self.vx < self.r:
         #    self.vx = -self.vx
-        #if self.y + self.vy > HEIGHT - self.r or self.y + self.vy < self.r:
+        # if self.y + self.vy > HEIGHT - self.r or self.y + self.vy < self.r:
         #    self.vy = -self.vy
         self.x += self.vx
         self.y += self.vy
@@ -137,7 +140,8 @@ class PlayerTank(Tank):
     def empower(self):
         if self.power_on:
             if time.time() - self.timer_s > self.reload_rate:
-                self.power += 5
+                if self.power < 20:
+                    self.power += 5
                 self.timer_s = time.time()
 
     def fire(self, bullets_array):
@@ -161,7 +165,8 @@ class Interface:
     def draw(self):
         dr.rect(self.screen, INTERFACE_COLOR, (0, HEIGHT, WIDTH, INTERFACE_HEIGHT))
         dr.rect(self.screen, YELLOW, (WIDTH // 10, HEIGHT + INTERFACE_HEIGHT // 3, WIDTH // 10, INTERFACE_HEIGHT // 3))
-        dr.rect(self.screen, RED, (WIDTH // 10, HEIGHT + INTERFACE_HEIGHT // 3, WIDTH // 300 * self.tank.power, INTERFACE_HEIGHT // 3))
+        dr.rect(self.screen, RED,
+                (WIDTH // 10, HEIGHT + INTERFACE_HEIGHT // 3, WIDTH // 300 * self.tank.power, INTERFACE_HEIGHT // 3))
 
 
 class Landshaft:
@@ -170,7 +175,7 @@ class Landshaft:
 
 
 class Ptur(Bullet):
-    def __init__(self, surface, x, y, v, angle, d=5, l=15, lifetime = 13):
+    def __init__(self, surface, x, y, v, angle, d=5, l=15, lifetime=13):
         Bullet.__init__(self, surface, x, y, v, angle, d)
         self.length = l
         self.angle = angle
@@ -182,7 +187,7 @@ class Ptur(Bullet):
     def draw(self):
         dr.line(self.screen, BLACK,
                 (self.x - math.cos(self.angle) * self.length, self.y - math.sin(self.angle) * self.length),
-                #(self.x + math.cos(self.angle) * self.length / 2, self.y + math.sin(self.angle) * self.length / 2),
+                # (self.x + math.cos(self.angle) * self.length / 2, self.y + math.sin(self.angle) * self.length / 2),
                 (self.x, self.y),
                 width=self.r)
         dr.circle(self.screen, RED,
@@ -222,7 +227,7 @@ class Explosion:
     def draw(self):
         for i in range(self.number):
             dr.circle(self.screen, self.color, (self.x + randint(-self.r, self.r), self.y + randint(-self.r, self.r)),
-                      randint(self.minr, self.r // 3))
+                      randint(self.minr, self.r // 2))
 
 
 def merge_bullets(bullets_array):
@@ -234,9 +239,24 @@ def merge_bullets(bullets_array):
             bullets_merged.append(b)
     return bullets_merged
 
+
 def merge_ptur(ptur_entity):
     if time.time() - ptur_entity.lived_s < ptur_entity.lifetime:
         ptur_entity.draw()
+
+def merge_hits(player_tank, bullets_array, enemy_tanks_array, explosions_array):
+    for b in bullets_array:
+        if player_tank.hittest(b):
+            player_tank.death(explosions_array)
+
+def merge_explosions(explosions_array):
+    explosions_merged = []
+    for e in explosions_array:
+        e.draw()
+        e.lifetime -= 1
+        if e.lifetime > 0:
+            explosions_merged.append(e)
+    return explosions_merged
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT + INTERFACE_HEIGHT))
@@ -245,7 +265,7 @@ finished = False
 
 bullets = []
 enemy_tanks = []
-
+explosions = []
 
 ptur = Ptur(screen, 20, 20, 2, 0)
 player = PlayerTank(screen, PLAYER_START_POS_X, PLAYER_START_POS_Y)
@@ -259,6 +279,8 @@ while not finished:
     merge_ptur(ptur)
     player.draw()
     interface.draw()
+    merge_hits(player, bullets, enemy_tanks, explosions)
+    explosions = merge_explosions(explosions)
     pygame.display.update()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -275,6 +297,7 @@ while not finished:
             player.power_up()
         elif event.type == pygame.MOUSEBUTTONUP:
             bullets = player.fire(bullets)
+
     player.empower()
     player.move()
     ptur.move()
