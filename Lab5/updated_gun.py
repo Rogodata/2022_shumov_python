@@ -17,7 +17,7 @@ BLACK = (0, 0, 0)
 WHITE = 0xFFFFFF
 GREY = 0x7D7D7D
 DARK_GREEN = 0x5d8900
-INTERFACE_COLOR = 0x5d4a33
+INTERFACE_COLOR = 0x999696
 GAME_COLORS = [RED, BLUE, YELLOW, GREEN, MAGENTA, CYAN]
 
 WIDTH = 1100
@@ -26,7 +26,7 @@ INTERFACE_HEIGHT = 150
 
 # FIXME вырази через ширину и высоту
 PLAYER_START_POS_X = 110
-PLAYER_START_POS_Y = 420
+PLAYER_START_POS_Y = 500
 
 
 class Tank:
@@ -45,7 +45,7 @@ class Tank:
         self.v = 0
         self.wheel_radius = self.width // 10
         self.life = 1
-        self.power = 10
+        self.power = 0
 
     def draw(self):
         dr.polygon(self.surface, self.color, [(self.x - self.width / 2, self.y - self.height / 2),
@@ -94,20 +94,23 @@ class Bullet:
 
     def move(self):
         self.vy += 10 / FPS
-        if self.x + self.vx > WIDTH - self.r or self.x + self.vx < self.r:
-            self.vx = -self.vx
-        if self.y + self.vy > HEIGHT - self.r or self.y + self.vy < self.r:
-            self.vy = -self.vy
+        #if self.x + self.vx > WIDTH - self.r or self.x + self.vx < self.r:
+        #    self.vx = -self.vx
+        #if self.y + self.vy > HEIGHT - self.r or self.y + self.vy < self.r:
+        #    self.vy = -self.vy
         self.x += self.vx
         self.y += self.vy
+
+    def in_bounds(self):
+        return WIDTH > self.x > 0 and HEIGHT > self.y > 0
 
 
 class PlayerTank(Tank):
     def __init__(self, surface, x, y):
         Tank.__init__(self, surface, x, y)
-        self.ptur = 0
+        self.ptured = 0
         self.timer_s = 0
-        self.reload_rate = 5
+        self.reload_rate = 1
 
     def move_by_keyboard(self, moving_event):
         if moving_event.key == pygame.K_d:
@@ -157,6 +160,8 @@ class Interface:
 
     def draw(self):
         dr.rect(self.screen, INTERFACE_COLOR, (0, HEIGHT, WIDTH, INTERFACE_HEIGHT))
+        dr.rect(self.screen, YELLOW, (WIDTH // 10, HEIGHT + INTERFACE_HEIGHT // 3, WIDTH // 10, INTERFACE_HEIGHT // 3))
+        dr.rect(self.screen, RED, (WIDTH // 10, HEIGHT + INTERFACE_HEIGHT // 3, WIDTH // 300 * self.tank.power, INTERFACE_HEIGHT // 3))
 
 
 class Landshaft:
@@ -164,25 +169,24 @@ class Landshaft:
         self.screen = surface
 
 
-class Ptur:
-    def __init__(self, surface, x, y, v, angle, d=5, l=15):
-        self.screen = surface
+class Ptur(Bullet):
+    def __init__(self, surface, x, y, v, angle, d=5, l=15, lifetime = 13):
+        Bullet.__init__(self, surface, x, y, v, angle, d)
         self.length = l
-        self.diam = d
         self.angle = angle
         self.omega = 0
         self.v = v
-        self.x = x
-        self.y = y
+        self.lifetime = lifetime
+        self.lived_s = time.time()
 
     def draw(self):
         dr.line(self.screen, BLACK,
                 (self.x - math.cos(self.angle) * self.length / 2, self.y - math.sin(self.angle) * self.length / 2),
                 (self.x + math.cos(self.angle) * self.length / 2, self.y + math.sin(self.angle) * self.length / 2),
-                width=self.diam)
+                width=self.r)
         dr.circle(self.screen, RED,
                   (self.x + math.cos(self.angle) * self.length / 2, self.y + math.sin(self.angle) * self.length / 2),
-                  self.diam * 3 // 4)
+                  self.r * 3 // 4)
         explosion = Explosion(self.screen, 3, 1, self.x - math.cos(self.angle) * self.length / 2,
                               self.y - math.sin(self.angle) * self.length / 2, 3)
         explosion.draw()
@@ -220,6 +224,19 @@ class Explosion:
                       randint(self.minr, self.r // 3))
 
 
+def merge_bullets(bullets_array):
+    bullets_merged = []
+    for b in bullets_array:
+        if b.in_bounds():
+            b.move()
+            b.draw()
+            bullets_merged.append(b)
+    return bullets_merged
+
+def merge_ptur(ptur_entity):
+    if time.time() - ptur_entity.lived_s < ptur_entity.lifetime:
+        ptur_entity.draw()
+
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT + INTERFACE_HEIGHT))
 clock = pygame.time.Clock()
@@ -236,11 +253,9 @@ while not finished:
     clock.tick(FPS)
     screen.fill(LIGHT_BLUE)
     # ТУТ рисуем
-    for b in bullets:
-        b.move()
-        b.draw()
+    bullets = merge_bullets(bullets)
+    merge_ptur(ptur)
     player.draw()
-    ptur.draw()
     interface.draw()
     pygame.display.update()
     for event in pygame.event.get():
