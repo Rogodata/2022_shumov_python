@@ -28,6 +28,10 @@ LANDSHAFT_HEIGHT = 70
 PLAYER_START_POS_X = 110
 PLAYER_START_POS_Y = 515
 
+ENEMY_TANKS_NUM = 4
+BOMBERS_RESPAWN = 3
+FIREBOMBERS_RESPAWN = 10
+
 
 class Tank:
     def __init__(self, surface, x, y, v=0):
@@ -293,7 +297,6 @@ class Bomber:
         self.vy = self.v * math.sin(self.dest_angle)
         self.set_dest(x_dest, y_dest)
 
-
     def set_dest(self, x_dest, y_dest):
         self.x_dest = x_dest
         self.y_dest = y_dest
@@ -526,21 +529,35 @@ def initialize(surface):
     return [], [], [], [], [], [], [], PlayerTank(surface, PLAYER_START_POS_X, PLAYER_START_POS_Y), Landshaft(surface)
 
 
+class Times:
+    def __init__(self):
+        self.start_time = time.time()
+        self.firebomber_time = time.time()
+        self.bomber_time = time.time()
+
+def merge_process(surface, game_finish, player_tank, tanks_array, bombers_array, firebombers_array, times_class):
+    if not player_tank.alive():
+        game_finish = 1
+    if len(tanks_array) < ENEMY_TANKS_NUM:
+        tanks_array.append(Tank(surface, WIDTH + randint(30, 100), PLAYER_START_POS_Y, v=randint(-3, -1)))
+    if len(firebombers_array) < 1 and time.time() - times_class.firebomber_time > FIREBOMBERS_RESPAWN:
+        firebombers_array.append(FiringBomber(surface, WIDTH + 100, -50, randint(750, 900), randint(250, 350)))
+        times_class.firebomber_time = time.time()
+    if len(bombers_array) < 1 and time.time() - times_class.bomber_time > BOMBERS_RESPAWN:
+        bombers_array.append(Bomber(surface, WIDTH // 2, -50, player_tank.x, randint(100, 200)))
+        times_class.bomber_time = time.time()
+    return game_finish
+
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT + INTERFACE_HEIGHT))
 clock = pygame.time.Clock()
 finished = False
 
 bullets, enemy_tanks, explosions, pturs, bombs, bombers, firebombers, player, landshaft = initialize(screen)
-
+times = Times()
 interface = Interface(screen, player)
 
-
-def time_played(start_time):
-    return time.time() - start_time
-
-
-for i in range(3):
+'''for i in range(3):
     tank = Tank(screen, WIDTH + 100 * i, PLAYER_START_POS_Y, v=-2)
     enemy_tanks.append(tank)
 
@@ -548,7 +565,7 @@ for i in range(3):
     bomber = Bomber(screen, -20, -30, randint(100, 300), randint(100, 200))
     bombers.append(bomber)
 
-firebombers.append(FiringBomber(screen, 400, -50, randint(700, 900), randint(200, 300)))
+firebombers.append(FiringBomber(screen, 400, -50, randint(700, 900), randint(200, 300)))'''
 
 while not finished:
     clock.tick(FPS)
@@ -559,5 +576,6 @@ while not finished:
     pygame.display.update()
     for event in pygame.event.get():
         finished, pturs, bullets = event_merger(event, finished, player, pturs, bullets)
+    finished = merge_process(screen, finished, player, enemy_tanks, bombers, firebombers, times)
 
 pygame.quit()
