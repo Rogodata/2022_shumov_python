@@ -307,6 +307,8 @@ class Bomber:
         if not (self.x_dest - 5 <self.x < self.x_dest + 5 or self.y_dest - 5 <self.y < self.y_dest + 5):
             self.x += self.vx
             self.y += self.vy
+        else:
+            self.mission = 0
 
     def hittest(self, attack_bullet):
         return (attack_bullet.x - self.x) ** 2 + (attack_bullet.y - self.y) ** 2 < self.r ** 2
@@ -320,13 +322,12 @@ class Bomber:
     def alive(self):
         return self.life > 0
 
-    def release_bomb(self, bombs_array):
-        self.mission = 0
+    def release_bomb(self):
         bomb = Bomb(self.screen, self.x, self.y + self.r, 6)
-        bombs_array.append(bomb)
         self.bombed = 0
         self.x_dest = 200
         self.y_dest = -50
+        return bomb
 
 
 def merge_bullets(bullets_array):
@@ -398,14 +399,17 @@ def merge_player_tank(player_tank):
     player_tank.draw()
     player_tank.empower()
 
-def merge_bombers(bombers_array):
+def merge_bombers(bombers_array, bombs_array):
     bombers_merged = []
     for b in bombers_array:
         if b.alive() and (b.mission or b.y > -20):
             b.move()
             b.draw()
+            if b.mission == 0 and b.bombed:
+                released_bomb = b.release_bomb()
+                bombs_array.append(released_bomb)
             bombers_merged.append(b)
-    return bombers_merged
+    return bombers_merged, bombs_array
 
 
 pygame.init()
@@ -443,7 +447,7 @@ while not finished:
     # ТУТ рисуем
     bullets = merge_bullets(bullets)
     enemy_tanks = merge_tanks(enemy_tanks)
-    bombers = merge_bombers(bombers)
+    bombers, bombs = merge_bombers(bombers, bombs)
     pturs = merge_ptur(pturs)
     merge_player_tank(player)
     landshaft.draw()
