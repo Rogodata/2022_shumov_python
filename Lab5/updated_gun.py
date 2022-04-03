@@ -535,6 +535,7 @@ class Times:
         self.firebomber_time = time.time()
         self.bomber_time = time.time()
 
+
 def merge_process(surface, game_finish, player_tank, tanks_array, bombers_array, firebombers_array, times_class):
     if not player_tank.alive():
         game_finish = 1
@@ -547,6 +548,7 @@ def merge_process(surface, game_finish, player_tank, tanks_array, bombers_array,
         bombers_array.append(Bomber(surface, WIDTH // 2, -50, player_tank.x, randint(100, 200)))
         times_class.bomber_time = time.time()
     return game_finish
+
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT + INTERFACE_HEIGHT))
@@ -570,7 +572,9 @@ firebombers.append(FiringBomber(screen, 400, -50, randint(700, 900), randint(200
 while not finished:
     clock.tick(FPS)
     screen.fill(LIGHT_BLUE)
-    merge_objects(player, bullets, enemy_tanks, explosions, pturs, landshaft, bombs, bombers, firebombers)
+    bullets, enemy_tanks, bombers, firebombers, bombs, pturs = merge_objects(player, bullets, enemy_tanks, explosions,
+                                                                             pturs, landshaft, bombs, bombers,
+                                                                             firebombers)
     interface.draw()
     explosions = merge_explosions(explosions)
     pygame.display.update()
