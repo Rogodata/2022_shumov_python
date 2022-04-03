@@ -47,7 +47,7 @@ class Tank:
         self.power = 10
         self.ptured = 0
         self.previous_ptur = time.time()
-        self.ptur_reload = 15
+        self.ptur_reload = 10
 
     def draw(self):
         dr.polygon(self.surface, self.color, [(self.x - self.width / 2, self.y - self.height / 2),
@@ -163,6 +163,7 @@ class PlayerTank(Tank):
             ptur_rocket = Ptur(self.surface, self.x, self.y - 2 * self.r, 4, 0)
             self.ptured = 0
             pturs_array.append(ptur_rocket)
+            self.previous_ptur = time.time()
         return pturs_array
 
 
@@ -188,7 +189,7 @@ class Landshaft:
         self.screen = surface
 
     def draw(self):
-        dr.rect(self.screen, GREEN, (0, HEIGHT - LANDSHAFT_HEIGHT, WIDTH, LANDSHAFT_HEIGHT))
+        dr.rect(self.screen, 0x243c07, (0, HEIGHT - LANDSHAFT_HEIGHT, WIDTH, LANDSHAFT_HEIGHT))
 
     def hittest(self, attack_bullet):
         return attack_bullet.y > HEIGHT - LANDSHAFT_HEIGHT
@@ -199,7 +200,7 @@ class Landshaft:
 
 
 class Ptur(Bullet):
-    def __init__(self, surface, x, y, v, angle, d=5, l=15, lifetime=13):
+    def __init__(self, surface, x, y, v, angle, d=5, l=15, lifetime=7):
         Bullet.__init__(self, surface, x, y, v, angle, d)
         self.length = l
         self.angle = angle
@@ -339,6 +340,37 @@ class Bomber:
         self.set_dest(200, -100)
         return bomb
 
+class FiringBomber(Bomber):
+    def __init__(self, surface, x, y, x_dest, y_dest):
+        Bomber.__init__(self, surface, x, y, x_dest, y_dest)
+        self.bombed = 0
+        self.target_angle = - 5 * math.pi / 6
+        self.ready_to_fire = 0
+        self.previous_shot = time.time()
+        self.reload = 3
+        self.caliber = 3
+        self.length = self.r * 1.5
+
+    def set_target(self, target_x, target_y):
+        if target_x - self.x > 0:
+            self.target_angle = math.atan((target_y - self.y) / (target_x - self.x))
+        elif target_x - self.x < 0:
+            self.target_angle = math.atan((target_y - self.y) / (target_x - self.x)) - math.pi
+        else:
+            self.target_angle = math.copysign(math.pi / 2, target_y - self.y)
+
+    def draw(self):
+        dr.circle(self.screen, self.color, (self.x, self.y), self.r)
+        dr.line(self.screen, BLACK, (self.x, self.y),
+                (self.x + math.cos(self.target_angle) * self.length,
+                 self.y + math.sin(self.target_angle) * self.length), width=self.caliber)
+
+    def fire(self, bullets_array):
+        bullet = Bullet(self.screen, self.x + math.cos(self.target_angle) * self.length,
+                 self.y + math.sin(self.target_angle) * self.length, 20,
+                        self.target_angle, self.caliber // 2)
+        bullets_array.append(bullet)
+        return bullets_array
 
 def merge_bullets(bullets_array):
     bullets_merged = []
@@ -370,7 +402,8 @@ def merge_ptur(pturs_array):
     return merged_pturs
 
 
-def merge_hits(player_tank, bullets_array, enemy_tanks_array, explosions_array, pturs_array, land, bombs_array):
+def merge_hits(player_tank, bullets_array, enemy_tanks_array, explosions_array, pturs_array, land, bombs_array,
+               bombers_array):
     hits_array = []
     for bullet in bullets_array:
         hits_array.append(bullet)
@@ -385,6 +418,10 @@ def merge_hits(player_tank, bullets_array, enemy_tanks_array, explosions_array, 
         for t in enemy_tanks_array:
             if t.hittest(h):
                 t.death(explosions_array)
+                h.hit = 1
+        for b in bombers_array:
+            if b.hittest(h):
+                b.death(explosions_array)
                 h.hit = 1
         if land.hittest(h):
             land.death(h, explosions_array)
@@ -414,7 +451,6 @@ def merge_tanks(tanks_array):
 def merge_player_tank(player_tank):
     if time.time() - player_tank.previous_ptur > player_tank.ptur_reload and not player_tank.ptured:
         player_tank.ptured = 1
-        player_tank.previous_ptur = time.time()
     player_tank.move()
     player_tank.draw()
     player_tank.empower()
@@ -432,6 +468,17 @@ def merge_bombers(bombers_array, bombs_array):
             bombers_merged.append(b)
     return bombers_merged
 
+def merge_firebombers(bombers_array, bullets_array):
+    bombers_merged = []
+    for b in bombers_array:
+        if b.alive():
+            b.move()
+            b.draw()
+            if time.time() - b.previous_shot > b.reload:
+                b.fire(bullets_array)
+                b.previous_shot = time.time()
+            bombers_merged.append(b)
+    return bombers_merged
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT + INTERFACE_HEIGHT))
@@ -444,6 +491,7 @@ explosions = []
 pturs = []
 bombs = []
 bombers = []
+firebombers = []
 player = PlayerTank(screen, PLAYER_START_POS_X, PLAYER_START_POS_Y)
 landshaft = Landshaft(screen)
 interface = Interface(screen, player)
@@ -462,6 +510,8 @@ for i in range(3):
     bomber = Bomber(screen, -20, -30, randint(100, 300), randint(100, 200))
     bombers.append(bomber)
 
+firebombers.append(FiringBomber(screen, 400, -50, randint(500, 600), randint(100, 200)))
+
 while not finished:
     clock.tick(FPS)
     screen.fill(LIGHT_BLUE)
@@ -469,12 +519,13 @@ while not finished:
     bullets = merge_bullets(bullets)
     enemy_tanks = merge_tanks(enemy_tanks)
     bombers = merge_bombers(bombers, bombs)
+    firebombers = merge_firebombers(firebombers, bullets)
     bombs = merge_bombs(bombs)
     pturs = merge_ptur(pturs)
     merge_player_tank(player)
     landshaft.draw()
     interface.draw()
-    merge_hits(player, bullets, enemy_tanks, explosions, pturs, landshaft, bombs)
+    merge_hits(player, bullets, enemy_tanks, explosions, pturs, landshaft, bombs, bombers)
     explosions = merge_explosions(explosions)
     pygame.display.update()
     for event in pygame.event.get():
