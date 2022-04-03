@@ -35,18 +35,20 @@ class Tank:
         self.surface = surface
         self.x = x
         self.y = y
-        self.fire_angle = 0
+        self.fire_angle = - 5 * math.pi / 6
         self.height = 15
         self.width = 50
         self.r = 10
         self.caliber = 3
-        self.color = DARK_GREEN
+        self.color = 0x3c3e4d
         self.power_on = 0
         self.v = v
         self.wheel_radius = self.width // 10
         self.life = 1
         self.power = 10
-        self.ptured = 1
+        self.ptured = 0
+        self.previous_ptur = time.time()
+        self.ptur_reload = 15
 
     def draw(self):
         dr.polygon(self.surface, self.color, [(self.x - self.width / 2, self.y - self.height / 2),
@@ -115,6 +117,7 @@ class Bullet:
 class PlayerTank(Tank):
     def __init__(self, surface, x, y):
         Tank.__init__(self, surface, x, y)
+        self.color = DARK_GREEN
         self.timer_s = 0
         self.reload_rate = 1
 
@@ -194,7 +197,6 @@ class Landshaft:
     def death(self, attack_bullet, explosions_array):
         explosion = Explosion(self.screen, 3, 3, attack_bullet.x, attack_bullet.y, 6, minr=2)
         explosions_array.append(explosion)
-        return explosions_array
 
 
 class Ptur(Bullet):
@@ -273,7 +275,6 @@ def merge_ptur(pturs_array):
     return merged_pturs
 
 
-
 def merge_hits(player_tank, bullets_array, enemy_tanks_array, explosions_array, pturs_array, land):
     for b in bullets_array:
         if player_tank.hittest(b):
@@ -319,8 +320,13 @@ def merge_tanks(tanks_array):
     return tanks_merged
 
 
-# def merge_player_tank(player_tank):
-
+def merge_player_tank(player_tank):
+    if time.time() - player_tank.previous_ptur > player_tank.ptur_reload and not player_tank.ptured:
+        player_tank.ptured = 1
+        player_tank.previous_ptur = time.time()
+    player_tank.move()
+    player_tank.draw()
+    player_tank.empower()
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT + INTERFACE_HEIGHT))
@@ -330,6 +336,11 @@ finished = False
 bullets = []
 enemy_tanks = []
 explosions = []
+
+game_start_time = time.time()
+
+def time_played(start_time):
+    return time.time() - start_time
 
 for i in range(3):
     tank = Tank(screen, WIDTH + 100 * i, PLAYER_START_POS_Y, v=-3)
@@ -347,7 +358,9 @@ while not finished:
     bullets = merge_bullets(bullets)
     enemy_tanks = merge_tanks(enemy_tanks)
     pturs = merge_ptur(pturs)
-    player.draw()
+    merge_player_tank(player)
+    #player.draw()
+    landshaft.draw()
     interface.draw()
     merge_hits(player, bullets, enemy_tanks, explosions, pturs, landshaft)
     explosions = merge_explosions(explosions)
@@ -370,7 +383,7 @@ while not finished:
             player.power_up()
         elif event.type == pygame.MOUSEBUTTONUP:
             bullets = player.fire(bullets)
-    player.empower()
-    player.move()
+    #player.empower()
+    #player.move()
 
 pygame.quit()
