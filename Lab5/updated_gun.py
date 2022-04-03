@@ -122,9 +122,9 @@ class PlayerTank(Tank):
 
     def move_by_keyboard(self, moving_event):
         if moving_event.key == pygame.K_d:
-            self.v = 2
+            self.v = 3
         elif moving_event.key == pygame.K_a:
-            self.v = -2
+            self.v = -3
 
     def stop_by_keyboard(self, stopping_event):
         if stopping_event.key == pygame.K_d or stopping_event.key == pygame.K_a:
@@ -297,6 +297,18 @@ class Bomber:
         self.vx = self.v * math.cos(self.dest_angle)
         self.vy = self.v * math.sin(self.dest_angle)
 
+    def set_dest(self, x_dest, y_dest):
+        self.x_dest = x_dest
+        self.y_dest = y_dest
+        if x_dest - self.x > 0:
+            self.dest_angle = math.atan((y_dest - self.y) / (x_dest - self.x))
+        elif x_dest - self.x < 0:
+            self.dest_angle = math.atan((y_dest - self.y) / (x_dest - self.x)) - math.pi
+        else:
+            self.dest_angle = math.copysign(math.pi / 2, y_dest - self.y)
+        self.vx = self.v * math.cos(self.dest_angle)
+        self.vy = self.v * math.sin(self.dest_angle)
+
     def draw(self):
         dr.circle(self.screen, self.color, (self.x, self.y), self.r)
         if self.bombed:
@@ -304,7 +316,7 @@ class Bomber:
             bomb.draw()
 
     def move(self):
-        if not (self.x_dest - 5 <self.x < self.x_dest + 5 or self.y_dest - 5 <self.y < self.y_dest + 5):
+        if not (self.x_dest - 5 < self.x < self.x_dest + 5 or self.y_dest - 5 < self.y < self.y_dest + 5):
             self.x += self.vx
             self.y += self.vy
         else:
@@ -325,8 +337,7 @@ class Bomber:
     def release_bomb(self):
         bomb = Bomb(self.screen, self.x, self.y + self.r, 6)
         self.bombed = 0
-        self.x_dest = 200
-        self.y_dest = -50
+        self.set_dest(200, -100)
         return bomb
 
 
@@ -339,6 +350,7 @@ def merge_bullets(bullets_array):
             bullets_merged.append(b)
     return bullets_merged
 
+
 def merge_bombs(bombs_array):
     bombs_merged = []
     for b in bombs_array:
@@ -347,6 +359,7 @@ def merge_bombs(bombs_array):
             b.draw()
             bombs_merged.append(b)
     return bombs_merged
+
 
 def merge_ptur(pturs_array):
     merged_pturs = []
@@ -407,17 +420,18 @@ def merge_player_tank(player_tank):
     player_tank.draw()
     player_tank.empower()
 
+
 def merge_bombers(bombers_array, bombs_array):
     bombers_merged = []
     for b in bombers_array:
-        if b.alive() and (b.mission or b.y > -20):
+        if b.alive() and (b.mission or b.y > -30):
             b.move()
             b.draw()
             if b.mission == 0 and b.bombed:
                 released_bomb = b.release_bomb()
                 bombs_array.append(released_bomb)
             bombers_merged.append(b)
-    return bombers_merged, bombs_array
+    return bombers_merged
 
 
 pygame.init()
@@ -442,7 +456,7 @@ def time_played(start_time):
 
 
 for i in range(3):
-    tank = Tank(screen, WIDTH + 100 * i, PLAYER_START_POS_Y, v=-3)
+    tank = Tank(screen, WIDTH + 100 * i, PLAYER_START_POS_Y, v=-2)
     enemy_tanks.append(tank)
 
 for i in range(3):
@@ -455,13 +469,13 @@ while not finished:
     # ТУТ рисуем
     bullets = merge_bullets(bullets)
     enemy_tanks = merge_tanks(enemy_tanks)
-    bombers, bombs = merge_bombers(bombers, bombs)
+    bombers = merge_bombers(bombers, bombs)
     bombs = merge_bombs(bombs)
     pturs = merge_ptur(pturs)
     merge_player_tank(player)
     landshaft.draw()
     interface.draw()
-    merge_hits(player, bullets, enemy_tanks, explosions, pturs, landshaft, bombers)
+    merge_hits(player, bullets, enemy_tanks, explosions, pturs, landshaft, bombs)
     explosions = merge_explosions(explosions)
     pygame.display.update()
     for event in pygame.event.get():
