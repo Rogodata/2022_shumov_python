@@ -211,7 +211,6 @@ class Ptur(Bullet):
     def draw(self):
         dr.line(self.screen, BLACK,
                 (self.x - math.cos(self.angle) * self.length, self.y - math.sin(self.angle) * self.length),
-                # (self.x + math.cos(self.angle) * self.length / 2, self.y + math.sin(self.angle) * self.length / 2),
                 (self.x, self.y),
                 width=self.r)
         dr.circle(self.screen, RED,
@@ -316,7 +315,7 @@ class Bomber:
             bomb.draw()
 
     def move(self):
-        if not (self.x_dest - 5 < self.x < self.x_dest + 5 or self.y_dest - 5 < self.y < self.y_dest + 5):
+        if not (self.x_dest - 5 < self.x < self.x_dest + 5 and self.y_dest - 5 < self.y < self.y_dest + 5):
             self.x += self.vx
             self.y += self.vy
         else:
