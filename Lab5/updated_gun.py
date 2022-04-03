@@ -25,7 +25,6 @@ HEIGHT = 600
 INTERFACE_HEIGHT = 150
 LANDSHAFT_HEIGHT = 70
 
-# FIXME вырази через ширину и высоту
 PLAYER_START_POS_X = 110
 PLAYER_START_POS_Y = 500
 
@@ -255,6 +254,81 @@ class Explosion:
                       randint(self.minr, self.r // 2))
 
 
+class Bomb(Ptur):
+    def __init__(self, surface, x, y, v):
+        Ptur.__init__(self, surface, x, y, v, angle=math.pi / 2, d=5, l=10, lifetime=13)
+
+    def draw(self):
+        dr.line(self.screen, BLACK,
+                (self.x - math.cos(self.angle) * self.length, self.y - math.sin(self.angle) * self.length),
+                (self.x, self.y),
+                width=self.r)
+        dr.circle(self.screen, RED,
+                  (self.x, self.y),
+                  self.r * 3 // 4)
+
+    def move_by_keyboard(self, moving_event):
+        return 0
+
+    def stop_by_keyboard(self, stopping_event):
+        return 0
+
+
+class Bomber:
+    def __init__(self, surface, x, y, x_dest, y_dest, v=2):
+        self.screen = surface
+        self.x = x
+        self.y = y
+        self.x_dest = x_dest
+        self.y_dest = y_dest
+        self.color = 0x3c3e4d
+        self.v = v
+        self.r = 15
+        self.bombed = 1
+        self.life = 1
+        self.dest_angle = 0
+        self.mission = 1
+        if x_dest - self.x > 0:
+            self.dest_angle = math.atan((y_dest - self.y) / (x_dest - self.x))
+        elif x_dest - self.x < 0:
+            self.dest_angle = math.atan((y_dest - self.y) / (x_dest - self.x)) - math.pi
+        else:
+            self.dest_angle = math.copysign(math.pi / 2, y_dest - self.y)
+        self.vx = self.v * math.cos(self.dest_angle)
+        self.vy = self.v * math.sin(self.dest_angle)
+
+    def draw(self):
+        dr.circle(self.screen, self.color, (self.x, self.y), self.r)
+        if self.bombed:
+            bomb = Bomb(self.screen, self.x, self.y + self.r, 0)
+            bomb.draw()
+
+    def move(self):
+        if not (self.x_dest - 5 <self.x < self.x_dest + 5 or self.y_dest - 5 <self.y < self.y_dest + 5):
+            self.x += self.vx
+            self.y += self.vy
+
+    def hittest(self, attack_bullet):
+        return (attack_bullet.x - self.x) ** 2 + (attack_bullet.y - self.y) ** 2 < self.r ** 2
+
+    def death(self, explosions_array):
+        explosion = Explosion(self.screen, 10, 0, self.x, self.y, self.r, minr=3)
+        explosions_array.append(explosion)
+        self.life = 0
+        self.color = BLACK
+
+    def alive(self):
+        return self.life > 0
+
+    def release_bomb(self, bombs_array):
+        self.mission = 0
+        bomb = Bomb(self.screen, self.x, self.y + self.r, 6)
+        bombs_array.append(bomb)
+        self.bombed = 0
+        self.x_dest = 200
+        self.y_dest = -50
+
+
 def merge_bullets(bullets_array):
     bullets_merged = []
     for b in bullets_array:
@@ -275,29 +349,25 @@ def merge_ptur(pturs_array):
     return merged_pturs
 
 
-def merge_hits(player_tank, bullets_array, enemy_tanks_array, explosions_array, pturs_array, land):
-    for b in bullets_array:
-        if player_tank.hittest(b):
-            player_tank.death(explosions_array)
-            b.hit = 1
-        for t in enemy_tanks_array:
-            if t.hittest(b):
-                t.death(explosions_array)
-                b.hit = 1
-        if land.hittest(b):
-            land.death(b, explosions_array)
-            b.hit = 1
+def merge_hits(player_tank, bullets_array, enemy_tanks_array, explosions_array, pturs_array, land, bombs_array):
+    hits_array = []
+    for bullet in bullets_array:
+        hits_array.append(bullet)
     for ptur_entity in pturs_array:
-        if player_tank.hittest(ptur_entity):
+        hits_array.append(ptur_entity)
+    for bomb in bombs_array:
+        hits_array.append(bomb)
+    for h in hits_array:
+        if player_tank.hittest(h):
             player_tank.death(explosions_array)
-            ptur_entity.hit = 1
+            h.hit = 1
         for t in enemy_tanks_array:
-            if t.hittest(ptur_entity):
+            if t.hittest(h):
                 t.death(explosions_array)
-                ptur_entity.hit = 1
-        if land.hittest(ptur_entity):
-            land.death(ptur_entity, explosions_array)
-            ptur_entity.hit = 1
+                h.hit = 1
+        if land.hittest(h):
+            land.death(h, explosions_array)
+            h.hit = 1
 
 
 def merge_explosions(explosions_array):
@@ -328,6 +398,16 @@ def merge_player_tank(player_tank):
     player_tank.draw()
     player_tank.empower()
 
+def merge_bombers(bombers_array):
+    bombers_merged = []
+    for b in bombers_array:
+        if b.alive() and (b.mission or b.y > -20):
+            b.move()
+            b.draw()
+            bombers_merged.append(b)
+    return bombers_merged
+
+
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT + INTERFACE_HEIGHT))
 clock = pygame.time.Clock()
@@ -336,20 +416,26 @@ finished = False
 bullets = []
 enemy_tanks = []
 explosions = []
-
+pturs = []
+bombs = []
+bombers = []
+player = PlayerTank(screen, PLAYER_START_POS_X, PLAYER_START_POS_Y)
+landshaft = Landshaft(screen)
+interface = Interface(screen, player)
 game_start_time = time.time()
+
 
 def time_played(start_time):
     return time.time() - start_time
+
 
 for i in range(3):
     tank = Tank(screen, WIDTH + 100 * i, PLAYER_START_POS_Y, v=-3)
     enemy_tanks.append(tank)
 
-pturs = []
-player = PlayerTank(screen, PLAYER_START_POS_X, PLAYER_START_POS_Y)
-landshaft = Landshaft(screen)
-interface = Interface(screen, player)
+for i in range(3):
+    bomber = Bomber(screen, -20, -30, randint(100, 300), randint(100, 200))
+    bombers.append(bomber)
 
 while not finished:
     clock.tick(FPS)
@@ -357,12 +443,12 @@ while not finished:
     # ТУТ рисуем
     bullets = merge_bullets(bullets)
     enemy_tanks = merge_tanks(enemy_tanks)
+    bombers = merge_bombers(bombers)
     pturs = merge_ptur(pturs)
     merge_player_tank(player)
-    #player.draw()
     landshaft.draw()
     interface.draw()
-    merge_hits(player, bullets, enemy_tanks, explosions, pturs, landshaft)
+    merge_hits(player, bullets, enemy_tanks, explosions, pturs, landshaft, bombers)
     explosions = merge_explosions(explosions)
     pygame.display.update()
     for event in pygame.event.get():
@@ -383,7 +469,5 @@ while not finished:
             player.power_up()
         elif event.type == pygame.MOUSEBUTTONUP:
             bullets = player.fire(bullets)
-    #player.empower()
-    #player.move()
 
 pygame.quit()
