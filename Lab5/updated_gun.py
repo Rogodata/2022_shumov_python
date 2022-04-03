@@ -339,6 +339,14 @@ def merge_bullets(bullets_array):
             bullets_merged.append(b)
     return bullets_merged
 
+def merge_bombs(bombs_array):
+    bombs_merged = []
+    for b in bombs_array:
+        if b.in_bounds() and b.hit == 0:
+            b.move()
+            b.draw()
+            bombs_merged.append(b)
+    return bombs_merged
 
 def merge_ptur(pturs_array):
     merged_pturs = []
@@ -448,6 +456,7 @@ while not finished:
     bullets = merge_bullets(bullets)
     enemy_tanks = merge_tanks(enemy_tanks)
     bombers, bombs = merge_bombers(bombers, bombs)
+    bombs = merge_bombs(bombs)
     pturs = merge_ptur(pturs)
     merge_player_tank(player)
     landshaft.draw()
