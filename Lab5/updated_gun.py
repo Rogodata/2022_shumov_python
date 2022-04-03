@@ -344,7 +344,7 @@ class FiringBomber(Bomber):
     def __init__(self, surface, x, y, x_dest, y_dest):
         Bomber.__init__(self, surface, x, y, x_dest, y_dest)
         self.bombed = 0
-        self.target_angle = - 5 * math.pi / 6
+        self.target_angle = -math.pi
         self.ready_to_fire = 0
         self.previous_shot = time.time()
         self.reload = 3
@@ -367,7 +367,7 @@ class FiringBomber(Bomber):
 
     def fire(self, bullets_array):
         bullet = Bullet(self.screen, self.x + math.cos(self.target_angle) * self.length,
-                 self.y + math.sin(self.target_angle) * self.length, 20,
+                 self.y + math.sin(self.target_angle) * self.length, 10,
                         self.target_angle, self.caliber // 2)
         bullets_array.append(bullet)
         return bullets_array
@@ -403,7 +403,7 @@ def merge_ptur(pturs_array):
 
 
 def merge_hits(player_tank, bullets_array, enemy_tanks_array, explosions_array, pturs_array, land, bombs_array,
-               bombers_array):
+               bombers_array, firebombers_array):
     hits_array = []
     for bullet in bullets_array:
         hits_array.append(bullet)
@@ -422,6 +422,10 @@ def merge_hits(player_tank, bullets_array, enemy_tanks_array, explosions_array, 
         for b in bombers_array:
             if b.hittest(h):
                 b.death(explosions_array)
+                h.hit = 1
+        for fb in firebombers_array:
+            if fb.hittest(h):
+                fb.death(explosions_array)
                 h.hit = 1
         if land.hittest(h):
             land.death(h, explosions_array)
@@ -477,6 +481,7 @@ def merge_firebombers(bombers_array, bullets_array):
             if time.time() - b.previous_shot > b.reload:
                 b.fire(bullets_array)
                 b.previous_shot = time.time()
+                b.set_dest(randint(700, 900), randint(200, 300))
             bombers_merged.append(b)
     return bombers_merged
 
@@ -510,22 +515,25 @@ for i in range(3):
     bomber = Bomber(screen, -20, -30, randint(100, 300), randint(100, 200))
     bombers.append(bomber)
 
-firebombers.append(FiringBomber(screen, 400, -50, randint(500, 600), randint(100, 200)))
+firebombers.append(FiringBomber(screen, 400, -50, randint(700, 900), randint(200, 300)))
+
+def merge_objects(player_tank, bullets_array, enemy_t_array, explosions_array, pturs_array, land, bombs_array, bombers_array, firebombers_array):
+    bullets_array = merge_bullets(bullets_array)
+    enemy_t_array = merge_tanks(enemy_t_array)
+    bombers_array = merge_bombers(bombers_array, bombs_array)
+    firebombers_array = merge_firebombers(firebombers_array, bullets)
+    bombs_array = merge_bombs(bombs_array)
+    pturs_array = merge_ptur(pturs_array)
+    merge_player_tank(player_tank)
+    land.draw()
+    merge_hits(player_tank, bullets_array, enemy_t_array, explosions_array, pturs_array, land, bombs_array, bombers_array, firebombers_array)
+    return bullets_array, enemy_t_array, bombers_array, firebombers_array, bombs_array, pturs_array
 
 while not finished:
     clock.tick(FPS)
     screen.fill(LIGHT_BLUE)
-    # ТУТ рисуем
-    bullets = merge_bullets(bullets)
-    enemy_tanks = merge_tanks(enemy_tanks)
-    bombers = merge_bombers(bombers, bombs)
-    firebombers = merge_firebombers(firebombers, bullets)
-    bombs = merge_bombs(bombs)
-    pturs = merge_ptur(pturs)
-    merge_player_tank(player)
-    landshaft.draw()
+    merge_objects(player, bullets, enemy_tanks, explosions, pturs, landshaft, bombs, bombers, firebombers)
     interface.draw()
-    merge_hits(player, bullets, enemy_tanks, explosions, pturs, landshaft, bombs, bombers)
     explosions = merge_explosions(explosions)
     pygame.display.update()
     for event in pygame.event.get():
