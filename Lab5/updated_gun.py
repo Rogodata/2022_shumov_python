@@ -26,7 +26,7 @@ INTERFACE_HEIGHT = 150
 LANDSHAFT_HEIGHT = 70
 
 PLAYER_START_POS_X = 110
-PLAYER_START_POS_Y = 500
+PLAYER_START_POS_Y = 515
 
 
 class Tank:
@@ -187,12 +187,13 @@ class Interface:
 class Landshaft:
     def __init__(self, surface):
         self.screen = surface
+        self.height = LANDSHAFT_HEIGHT
 
     def draw(self):
         dr.rect(self.screen, 0x243c07, (0, HEIGHT - LANDSHAFT_HEIGHT, WIDTH, LANDSHAFT_HEIGHT))
 
     def hittest(self, attack_bullet):
-        return attack_bullet.y > HEIGHT - LANDSHAFT_HEIGHT
+        return attack_bullet.y > HEIGHT - self.height
 
     def death(self, attack_bullet, explosions_array):
         explosion = Explosion(self.screen, 3, 3, attack_bullet.x, attack_bullet.y, 6, minr=2)
@@ -288,14 +289,10 @@ class Bomber:
         self.life = 1
         self.dest_angle = 0
         self.mission = 1
-        if x_dest - self.x > 0:
-            self.dest_angle = math.atan((y_dest - self.y) / (x_dest - self.x))
-        elif x_dest - self.x < 0:
-            self.dest_angle = math.atan((y_dest - self.y) / (x_dest - self.x)) - math.pi
-        else:
-            self.dest_angle = math.copysign(math.pi / 2, y_dest - self.y)
         self.vx = self.v * math.cos(self.dest_angle)
         self.vy = self.v * math.sin(self.dest_angle)
+        self.set_dest(x_dest, y_dest)
+
 
     def set_dest(self, x_dest, y_dest):
         self.x_dest = x_dest
@@ -340,6 +337,7 @@ class Bomber:
         self.set_dest(200, -100)
         return bomb
 
+
 class FiringBomber(Bomber):
     def __init__(self, surface, x, y, x_dest, y_dest):
         Bomber.__init__(self, surface, x, y, x_dest, y_dest)
@@ -367,10 +365,11 @@ class FiringBomber(Bomber):
 
     def fire(self, bullets_array):
         bullet = Bullet(self.screen, self.x + math.cos(self.target_angle) * self.length,
-                 self.y + math.sin(self.target_angle) * self.length, 10,
+                        self.y + math.sin(self.target_angle) * self.length, 10,
                         self.target_angle, self.caliber // 2)
         bullets_array.append(bullet)
         return bullets_array
+
 
 def merge_bullets(bullets_array):
     bullets_merged = []
@@ -472,6 +471,7 @@ def merge_bombers(bombers_array, bombs_array):
             bombers_merged.append(b)
     return bombers_merged
 
+
 def merge_firebombers(bombers_array, bullets_array):
     bombers_merged = []
     for b in bombers_array:
@@ -485,22 +485,55 @@ def merge_firebombers(bombers_array, bullets_array):
             bombers_merged.append(b)
     return bombers_merged
 
+
+def merge_objects(player_tank, bullets_array, enemy_t_array, explosions_array, pturs_array, land, bombs_array,
+                  bombers_array, firebombers_array):
+    bullets_array = merge_bullets(bullets_array)
+    enemy_t_array = merge_tanks(enemy_t_array)
+    bombers_array = merge_bombers(bombers_array, bombs_array)
+    firebombers_array = merge_firebombers(firebombers_array, bullets)
+    bombs_array = merge_bombs(bombs_array)
+    pturs_array = merge_ptur(pturs_array)
+    merge_player_tank(player_tank)
+    land.draw()
+    merge_hits(player_tank, bullets_array, enemy_t_array, explosions_array, pturs_array, land, bombs_array,
+               bombers_array, firebombers_array)
+    return bullets_array, enemy_t_array, bombers_array, firebombers_array, bombs_array, pturs_array
+
+
+def event_merger(event_0, game_finish, player_tank, pturs_array, bullets_array):
+    if event_0.type == pygame.QUIT:
+        game_finish = True
+    elif event_0.type == pygame.KEYDOWN:
+        player.move_by_keyboard(event_0)
+        for ptur_entity in pturs_array:
+            ptur_entity.move_by_keyboard(event_0)
+        pturs_array = player_tank.fire_ptur(event_0, pturs_array)
+    elif event_0.type == pygame.KEYUP:
+        player_tank.stop_by_keyboard(event_0)
+        for ptur_entity in pturs_array:
+            ptur_entity.stop_by_keyboard(event_0)
+    elif event_0.type == pygame.MOUSEMOTION:
+        player_tank.targetting(event_0)
+    elif event_0.type == pygame.MOUSEBUTTONDOWN:
+        player_tank.power_up()
+    elif event_0.type == pygame.MOUSEBUTTONUP:
+        bullets_array = player.fire(bullets_array)
+    return game_finish, pturs_array, bullets_array
+
+
+def initialize(surface):
+    return [], [], [], [], [], [], [], PlayerTank(surface, PLAYER_START_POS_X, PLAYER_START_POS_Y), Landshaft(surface)
+
+
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT + INTERFACE_HEIGHT))
 clock = pygame.time.Clock()
 finished = False
 
-bullets = []
-enemy_tanks = []
-explosions = []
-pturs = []
-bombs = []
-bombers = []
-firebombers = []
-player = PlayerTank(screen, PLAYER_START_POS_X, PLAYER_START_POS_Y)
-landshaft = Landshaft(screen)
+bullets, enemy_tanks, explosions, pturs, bombs, bombers, firebombers, player, landshaft = initialize(screen)
+
 interface = Interface(screen, player)
-game_start_time = time.time()
 
 
 def time_played(start_time):
@@ -517,18 +550,6 @@ for i in range(3):
 
 firebombers.append(FiringBomber(screen, 400, -50, randint(700, 900), randint(200, 300)))
 
-def merge_objects(player_tank, bullets_array, enemy_t_array, explosions_array, pturs_array, land, bombs_array, bombers_array, firebombers_array):
-    bullets_array = merge_bullets(bullets_array)
-    enemy_t_array = merge_tanks(enemy_t_array)
-    bombers_array = merge_bombers(bombers_array, bombs_array)
-    firebombers_array = merge_firebombers(firebombers_array, bullets)
-    bombs_array = merge_bombs(bombs_array)
-    pturs_array = merge_ptur(pturs_array)
-    merge_player_tank(player_tank)
-    land.draw()
-    merge_hits(player_tank, bullets_array, enemy_t_array, explosions_array, pturs_array, land, bombs_array, bombers_array, firebombers_array)
-    return bullets_array, enemy_t_array, bombers_array, firebombers_array, bombs_array, pturs_array
-
 while not finished:
     clock.tick(FPS)
     screen.fill(LIGHT_BLUE)
@@ -537,22 +558,6 @@ while not finished:
     explosions = merge_explosions(explosions)
     pygame.display.update()
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            finished = True
-        elif event.type == pygame.KEYDOWN:
-            player.move_by_keyboard(event)
-            for ptur in pturs:
-                ptur.move_by_keyboard(event)
-            pturs = player.fire_ptur(event, pturs)
-        elif event.type == pygame.KEYUP:
-            player.stop_by_keyboard(event)
-            for ptur in pturs:
-                ptur.stop_by_keyboard(event)
-        elif event.type == pygame.MOUSEMOTION:
-            player.targetting(event)
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            player.power_up()
-        elif event.type == pygame.MOUSEBUTTONUP:
-            bullets = player.fire(bullets)
+        finished, pturs, bullets = event_merger(event, finished, player, pturs, bullets)
 
 pygame.quit()
