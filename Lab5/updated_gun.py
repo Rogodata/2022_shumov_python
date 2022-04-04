@@ -197,6 +197,7 @@ class Landshaft:
 
     def draw(self):
         dr.rect(self.screen, 0x243c07, (0, HEIGHT - LANDSHAFT_HEIGHT, WIDTH, LANDSHAFT_HEIGHT))
+        dr.line(self.screen, RED, (DEFEAT_X_POS, HEIGHT - LANDSHAFT_HEIGHT), (DEFEAT_X_POS, HEIGHT))
 
     def hittest(self, attack_bullet):
         return attack_bullet.y > HEIGHT - self.height
@@ -374,11 +375,13 @@ class FiringBomber(Bomber):
                         self.target_angle, self.caliber // 2)
         return bullet
 
+
 class Times:
     def __init__(self):
         self.start_time = time.time()
         self.firebomber_time = time.time()
         self.bomber_time = time.time()
+
 
 def merge_bullets(bullets_array):
     bullets_merged = []
@@ -535,9 +538,6 @@ def initialize(surface):
     return [], [], [], [], [], [], [], PlayerTank(surface, PLAYER_START_POS_X, PLAYER_START_POS_Y), Landshaft(surface)
 
 
-
-
-
 def merge_process(surface, game_finish, player_tank, tanks_array, bombers_array, firebombers_array, times_class):
     if not player_tank.alive():
         game_finish = 1
@@ -553,6 +553,11 @@ def merge_process(surface, game_finish, player_tank, tanks_array, bombers_array,
         bombers_array.append(Bomber(surface, WIDTH // 2, -50, player_tank.x, randint(100, 200)))
         times_class.bomber_time = time.time()
     return game_finish
+
+
+def game_over():
+    print("Игра окончена. Вы прогирали")
+    time.sleep(2)
 
 
 pygame.init()
@@ -577,5 +582,5 @@ while not finished:
         finished, pturs, bullets = event_merger(event, finished, player, pturs, bullets)
     finished = merge_process(screen, finished, player, enemy_tanks, bombers, firebombers, times)
 
-
+game_over()
 pygame.quit()
