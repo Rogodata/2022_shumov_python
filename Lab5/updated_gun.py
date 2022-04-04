@@ -30,7 +30,7 @@ PLAYER_START_POS_Y = 515
 
 ENEMY_TANKS_NUM = 4
 BOMBERS_RESPAWN = 3
-FIREBOMBERS_RESPAWN = 10
+FIREBOMBERS_RESPAWN = 3
 
 
 class Tank:
@@ -366,12 +366,11 @@ class FiringBomber(Bomber):
                 (self.x + math.cos(self.target_angle) * self.length,
                  self.y + math.sin(self.target_angle) * self.length), width=self.caliber)
 
-    def fire(self, bullets_array):
+    def fire(self):
         bullet = Bullet(self.screen, self.x + math.cos(self.target_angle) * self.length,
                         self.y + math.sin(self.target_angle) * self.length, 10,
                         self.target_angle, self.caliber // 2)
-        bullets_array.append(bullet)
-        return bullets_array
+        return bullet
 
 
 def merge_bullets(bullets_array):
@@ -482,11 +481,11 @@ def merge_firebombers(bombers_array, bullets_array):
             b.move()
             b.draw()
             if time.time() - b.previous_shot > b.reload:
-                b.fire(bullets_array)
+                bullets_array.append(b.fire())
                 b.previous_shot = time.time()
                 b.set_dest(randint(700, 900), randint(200, 300))
             bombers_merged.append(b)
-    return bombers_merged
+    return bombers_merged, bullets_array
 
 
 def merge_objects(player_tank, bullets_array, enemy_t_array, explosions_array, pturs_array, land, bombs_array,
@@ -494,7 +493,7 @@ def merge_objects(player_tank, bullets_array, enemy_t_array, explosions_array, p
     bullets_array = merge_bullets(bullets_array)
     enemy_t_array = merge_tanks(enemy_t_array)
     bombers_array = merge_bombers(bombers_array, bombs_array)
-    firebombers_array = merge_firebombers(firebombers_array, bullets)
+    firebombers_array, bullets_array = merge_firebombers(firebombers_array, bullets_array)
     bombs_array = merge_bombs(bombs_array)
     pturs_array = merge_ptur(pturs_array)
     merge_player_tank(player_tank)
@@ -558,16 +557,6 @@ finished = False
 bullets, enemy_tanks, explosions, pturs, bombs, bombers, firebombers, player, landshaft = initialize(screen)
 times = Times()
 interface = Interface(screen, player)
-
-'''for i in range(3):
-    tank = Tank(screen, WIDTH + 100 * i, PLAYER_START_POS_Y, v=-2)
-    enemy_tanks.append(tank)
-
-for i in range(3):
-    bomber = Bomber(screen, -20, -30, randint(100, 300), randint(100, 200))
-    bombers.append(bomber)
-
-firebombers.append(FiringBomber(screen, 400, -50, randint(700, 900), randint(200, 300)))'''
 
 while not finished:
     clock.tick(FPS)
