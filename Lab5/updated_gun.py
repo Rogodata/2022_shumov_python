@@ -32,6 +32,8 @@ ENEMY_TANKS_NUM = 4
 BOMBERS_RESPAWN = 3
 FIREBOMBERS_RESPAWN = 3
 
+DEFEAT_X_POS = 200
+
 
 class Tank:
     def __init__(self, surface, x, y, v=0):
@@ -372,6 +374,11 @@ class FiringBomber(Bomber):
                         self.target_angle, self.caliber // 2)
         return bullet
 
+class Times:
+    def __init__(self):
+        self.start_time = time.time()
+        self.firebomber_time = time.time()
+        self.bomber_time = time.time()
 
 def merge_bullets(bullets_array):
     bullets_merged = []
@@ -412,25 +419,25 @@ def merge_hits(player_tank, bullets_array, enemy_tanks_array, explosions_array, 
         hits_array.append(ptur_entity)
     for bomb in bombs_array:
         hits_array.append(bomb)
-    for h in hits_array:
-        if player_tank.hittest(h):
+    for hit in hits_array:
+        if player_tank.hittest(hit):
             player_tank.death(explosions_array)
-            h.hit = 1
+            hit.hit = 1
         for t in enemy_tanks_array:
-            if t.hittest(h):
+            if t.hittest(hit):
                 t.death(explosions_array)
-                h.hit = 1
+                hit.hit = 1
         for b in bombers_array:
-            if b.hittest(h):
+            if b.hittest(hit):
                 b.death(explosions_array)
-                h.hit = 1
+                hit.hit = 1
         for fb in firebombers_array:
-            if fb.hittest(h):
+            if fb.hittest(hit):
                 fb.death(explosions_array)
-                h.hit = 1
-        if land.hittest(h):
-            land.death(h, explosions_array)
-            h.hit = 1
+                hit.hit = 1
+        if land.hittest(hit):
+            land.death(hit, explosions_array)
+            hit.hit = 1
 
 
 def merge_explosions(explosions_array):
@@ -528,16 +535,15 @@ def initialize(surface):
     return [], [], [], [], [], [], [], PlayerTank(surface, PLAYER_START_POS_X, PLAYER_START_POS_Y), Landshaft(surface)
 
 
-class Times:
-    def __init__(self):
-        self.start_time = time.time()
-        self.firebomber_time = time.time()
-        self.bomber_time = time.time()
+
 
 
 def merge_process(surface, game_finish, player_tank, tanks_array, bombers_array, firebombers_array, times_class):
     if not player_tank.alive():
         game_finish = 1
+    for tank in tanks_array:
+        if tank.x < DEFEAT_X_POS:
+            game_finish = 1
     if len(tanks_array) < ENEMY_TANKS_NUM:
         tanks_array.append(Tank(surface, WIDTH + randint(30, 100), PLAYER_START_POS_Y, v=randint(-3, -1)))
     if len(firebombers_array) < 1 and time.time() - times_class.firebomber_time > FIREBOMBERS_RESPAWN:
@@ -570,5 +576,6 @@ while not finished:
     for event in pygame.event.get():
         finished, pturs, bullets = event_merger(event, finished, player, pturs, bullets)
     finished = merge_process(screen, finished, player, enemy_tanks, bombers, firebombers, times)
+
 
 pygame.quit()
