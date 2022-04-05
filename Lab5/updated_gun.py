@@ -36,6 +36,11 @@ DEFEAT_X_POS = 200
 
 
 class Tank:
+    """
+    Это базовыйй класс танка. Стрелять эта реализация не умеет, зато может двигаться, рисовать себя и
+    проверять, не попали ли по нему
+    """
+
     def __init__(self, surface, x, y, v=0):
         """
         конструктор танка
@@ -121,6 +126,10 @@ class Tank:
 
 
 class Bullet:
+    """
+    Базовый объект класса пули, умеет двигаться, рисовать себя и проверять, не вылетела ли она за экран
+    """
+
     def __init__(self, surface, x, y, v, angle, r):
         """
         Констрктор класса пули
@@ -163,7 +172,18 @@ class Bullet:
 
 
 class PlayerTank(Tank):
+    """
+    Это уже танк игрока. Умеет всё, что умеет обычный танк, но может изменять направление стрельбы,
+    может управляться с клавиатуры, стрелять обычными пулями и птурами
+    """
+
     def __init__(self, surface, x, y):
+        """
+        онструктор класса  PlayerTank
+        :param surface: бъект pygame.surface
+        :param x: координата х танка
+        :param y: координата у танка
+        """
         Tank.__init__(self, surface, x, y)
         self.color = DARK_GREEN
         self.timer_s = 0
@@ -189,7 +209,7 @@ class PlayerTank(Tank):
 
     def targetting(self, target_event):
         """
-        Задаёт угол, по котором направлен ствол танка
+        Задаёт угол, по которому относительно горизонта направлен ствол танка
         :param target_event: объект вида pygame.event
         """
         if target_event.pos[0] - self.x > 0:
@@ -246,7 +266,16 @@ class PlayerTank(Tank):
 
 
 class Interface:
+    """
+    Это класс пользовательского интерфейса, отрисовываюшегося под экраном игры и показывающнго состояние танка игрока
+    """
+
     def __init__(self, surface, player_tank):
+        """
+        конструктор класса Interfsce
+        :param surface: объект класса pygame.surface
+        :param player_tank: объект класса PlayerTank
+        """
         self.e = 1
         self.screen = surface
         self.tank = player_tank
@@ -266,7 +295,15 @@ class Interface:
 
 
 class Landshaft:
+    """
+    Это класс ландсшафта, являющийся травянистой землёй на экране
+    """
+
     def __init__(self, surface):
+        """
+        конструктор класса Landshaft
+        :param surface: объект класса pygame.surface
+        """
         self.screen = surface
         self.height = LANDSHAFT_HEIGHT
 
@@ -296,8 +333,24 @@ class Landshaft:
 
 
 class Ptur(Bullet):
-    def __init__(self, surface, x, y, v, angle, d=5, l=15, lifetime=7):
-        Bullet.__init__(self, surface, x, y, v, angle, d)
+    """
+    Это класс птура, дочерний класс для Bullet. Имеет общий вариант проверки на нахождение внутри области экрана,
+    однако может двигаться, управляясь с клавиатуры. На движение не влияет ускорение свободного падения.
+    """
+
+    def __init__(self, surface, x, y, v, angle, r=5, l=15, lifetime=7):
+        """
+        Конструктор класса Ptur
+        :param surface: объект класса pygame.surface
+        :param x: координата кончика птура
+        :param y: координата кончика птура
+        :param v: скорость птура
+        :param angle: угол между направление движения птура и горизонтом
+        :param r: радиус птура
+        :param l: длинаразгонной части птура
+        :param lifetime: время жизни птура в секундах
+        """
+        Bullet.__init__(self, surface, x, y, v, angle, r)
         self.length = l
         self.angle = angle
         self.omega = 0
@@ -348,7 +401,22 @@ class Ptur(Bullet):
 
 
 class Explosion:
+    """
+    Класс взрывов
+    """
+
     def __init__(self, surface, number, lifetime, x, y, r, minr=1, color=YELLOW):
+        """
+        конструктор класса Explosion
+        :param surface: объект pygame.surface
+        :param number: количество взрывов
+        :param lifetime: время отрисовки в кадрах
+        :param x: центр квадрата, в котром будут отрисованы взывы (координата х)
+        :param y: центр квадрата, в котром будут отрисованы взывы (координата y)
+        :param r: половина длины стороны квадрата
+        :param minr: минимальный радиус круга взрыва (minr < r // 2)
+        :param color: цвет взрыва
+        """
         self.screen = surface
         self.number = number
         self.lifetime = lifetime
@@ -368,10 +436,25 @@ class Explosion:
 
 
 class Bomb(Ptur):
+    """
+    Класс бомбы, дочерний для птура. не должен управляться с клавиатуры. рисуется просто как птур,
+    летящий вертикально вниз
+    """
+
     def __init__(self, surface, x, y, v):
-        Ptur.__init__(self, surface, x, y, v, angle=math.pi / 2, d=5, l=10, lifetime=13)
+        """
+        Конструктор класса
+        :param surface: объект pygame.surface
+        :param x: координата взрывной части х
+        :param y: координата взрывной части у
+        :param v: скорость падения
+        """
+        Ptur.__init__(self, surface, x, y, v, angle=math.pi / 2, r=5, l=10, lifetime=13)
 
     def draw(self):
+        """
+        Рисует бомбу
+        """
         dr.line(self.screen, BLACK,
                 (self.x - math.cos(self.angle) * self.length, self.y - math.sin(self.angle) * self.length),
                 (self.x, self.y),
@@ -396,7 +479,21 @@ class Bomb(Ptur):
 
 
 class Bomber:
+    """
+    бомбардировщик. Летающий противник, сбрасывающий бомбы вам на голову. Сначала летит в точку (x_dest, y_dest),
+    сбрасывает там бомбу и летит куда-нибудь за экран
+    """
+
     def __init__(self, surface, x, y, x_dest, y_dest, v=2):
+        """
+        Конструктор класса
+        :param surface: объект pygame.surface
+        :param x: координата х центра бомбардировщика
+        :param y: координата у центра бомбардировщика
+        :param x_dest: координата х точки, в которую полетит бомбардировщик
+        :param y_dest: координата у точки, в которую полетит бомбардировщик
+        :param v: скорость движения
+        """
         self.screen = surface
         self.x = x
         self.y = y
@@ -486,7 +583,19 @@ class Bomber:
 
 
 class FiringBomber(Bomber):
+    """
+    дочерний класс бомбардировщика. Этот уже бомбы не сбрасывает, но стреляет из пушки. логика движения та же
+    """
+
     def __init__(self, surface, x, y, x_dest, y_dest):
+        """
+        Конструктор класса
+        :param surface: объект pygame.surface
+        :param x: координата х центра бомбардировщика
+        :param y: координата у центра бомбардировщика
+        :param x_dest: координата х точки, в которую полетит бомбардировщик
+        :param y_dest: координата у точки, в которую полетит бомбардировщик
+        """
         Bomber.__init__(self, surface, x, y, x_dest, y_dest)
         self.bombed = 0
         self.target_angle = -math.pi
@@ -522,6 +631,9 @@ class Times:
     """
 
     def __init__(self):
+        """
+        Конструктор класса
+        """
         self.firebomber_time = time.time()
         self.bomber_time = time.time()
 
