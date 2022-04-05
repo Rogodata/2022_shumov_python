@@ -87,7 +87,7 @@ class Tank:
                   (self.x + self.width / 2 - self.wheel_radius, self.y + self.height / 2 + self.wheel_radius),
                   self.wheel_radius)
         if self.ptured:
-            ptur_0 = Ptur(self.surface, self.x, self.y - 2 * self.r, 4, 0)
+            ptur_0 = Ptur(self.surface, self.x, self.y - 2 * self.r, 4, 0, exp=0)
             ptur_0.draw()
 
     def move(self):
@@ -351,7 +351,7 @@ class Ptur(Bullet):
     однако может двигаться, управляясь с клавиатуры. На движение не влияет ускорение свободного падения.
     """
 
-    def __init__(self, surface, x, y, v, angle, r=5, l=15, lifetime=7):
+    def __init__(self, surface, x, y, v, angle, r=5, l=15, lifetime=7, exp=1):
         """
         Конструктор класса Ptur
         :param surface: объект класса pygame.surface
@@ -370,6 +370,7 @@ class Ptur(Bullet):
         self.v = v
         self.lifetime = lifetime
         self.lived_s = time.time()
+        self.explosions = exp
 
     def draw(self):
         """
@@ -382,9 +383,10 @@ class Ptur(Bullet):
         dr.circle(self.screen, RED,
                   (self.x, self.y),
                   self.r * 3 // 4)
-        explosion = Explosion(self.screen, 3, 1, self.x - math.cos(self.angle) * self.length,
-                              self.y - math.sin(self.angle) * self.length, 3)
-        explosion.draw()
+        if self.explosions:
+            explosion = Explosion(self.screen, 3, 1, self.x - math.cos(self.angle) * self.length,
+                                  self.y - math.sin(self.angle) * self.length, 3)
+            explosion.draw()
 
     def move_by_keyboard(self, moving_event):
         """
@@ -462,19 +464,13 @@ class Bomb(Ptur):
         :param y: координата взрывной части у
         :param v: скорость падения
         """
-        Ptur.__init__(self, surface, x, y, v, angle=math.pi / 2, r=5, l=10, lifetime=13)
+        Ptur.__init__(self, surface, x, y, v, angle=math.pi / 2, r=5, l=10, lifetime=13, exp=0)
 
     def draw(self):
         """
         Рисует бомбу
         """
-        dr.line(self.screen, BLACK,
-                (self.x - math.cos(self.angle) * self.length, self.y - math.sin(self.angle) * self.length),
-                (self.x, self.y),
-                width=self.r)
-        dr.circle(self.screen, RED,
-                  (self.x, self.y),
-                  self.r * 3 // 4)
+        Ptur.draw(self)
 
     def move_by_keyboard(self, moving_event):
         """
