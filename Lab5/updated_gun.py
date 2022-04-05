@@ -37,6 +37,13 @@ DEFEAT_X_POS = 200
 
 class Tank:
     def __init__(self, surface, x, y, v=0):
+        """
+        конструктор танка
+        :param surface: объект pygame.surface
+        :param x: координата танка
+        :param y: координата танка
+        :param v: скорость движения танка
+        """
         self.surface = surface
         self.x = x
         self.y = y
@@ -56,6 +63,9 @@ class Tank:
         self.ptur_reload = 10
 
     def draw(self):
+        """
+        Рисует танк как совокупность графических примитивов и объекта класса ptur, если у танка он заряжен
+        """
         dr.polygon(self.surface, self.color, [(self.x - self.width / 2, self.y - self.height / 2),
                                               (self.x + self.width / 2, self.y - self.height / 2),
                                               (self.x + self.width / 2, self.y + self.height / 2),
@@ -76,28 +86,51 @@ class Tank:
             ptur_0.draw()
 
     def move(self):
+        """
+        Двигает танк. Только по оси x
+        """
         self.x += self.v
 
-    def power_start(self):
-        self.power_on = 1
-
     def hittest(self, attack_bullet):
+        """
+        проверка, попал ли объект класса attack_bullet в танк. Попадание засчитывается только если центр пули явно
+        лежит внутри тела танка
+        :param attack_bullet: объект класса bullet
+        :return: True, если пуля попала, False - иначе
+        """
         return (self.x + self.width / 2 > attack_bullet.x > self.x - self.width / 2 and self.y + self.height / 2 >
                 attack_bullet.y > self.y - self.height / 2) or \
                ((attack_bullet.x - self.x) ** 2 + (attack_bullet.y - self.y + self.height / 2) ** 2 < self.r ** 2)
 
     def death(self, explosions_array):
+        """
+        Данная функция вызывает взрыв танка и его почернение
+        :param explosions_array: это массив объектов класса explosions
+        """
         explosion = Explosion(self.surface, 10, 0, self.x, self.y, self.width // 2, minr=3)
         explosions_array.append(explosion)
         self.life = 0
         self.color = BLACK
 
     def alive(self):
+        """
+        Просто проверка жив ли танк
+        :return: True, если да, False если нет
+        """
         return self.life > 0
 
 
 class Bullet:
     def __init__(self, surface, x, y, v, angle, r):
+        """
+        Констрктор класса пули
+        :param surface: объект pygame.surface
+        :param x: координата х пули
+        :param y: координата у пули
+        :param v: скорость пули ( абсолютная в начальный момент
+        :param angle: угол, под которым пулей выстрелили
+        :param r: радиус пули
+        """
         self.screen = surface
         self.x = x
         self.y = y
@@ -108,14 +141,24 @@ class Bullet:
         self.hit = 0
 
     def draw(self):
+        """
+        Рисует пулю
+        """
         dr.circle(self.screen, self.color, (self.x, self.y), self.r)
 
     def move(self):
+        """
+        Перемещает пулю в пространстве
+        """
         self.vy += 10 / FPS
         self.x += self.vx
         self.y += self.vy
 
     def in_bounds(self):
+        """
+        Показывает, вылетела ли пуля за видимый экран или нет
+        :return: True, нет False, если да
+        """
         return WIDTH > self.x > 0 and HEIGHT > self.y > 0
 
 
@@ -127,16 +170,28 @@ class PlayerTank(Tank):
         self.reload_rate = 1
 
     def move_by_keyboard(self, moving_event):
+        """
+        Изменяет напрвление движения танка игрока
+        :param moving_event: объект вида pygame.event
+        """
         if moving_event.key == pygame.K_d:
             self.v = 3
         elif moving_event.key == pygame.K_a:
             self.v = -3
 
     def stop_by_keyboard(self, stopping_event):
+        """
+        Останавливает танк игрока
+        :param stopping_event: объект вида pygame.event
+        """
         if stopping_event.key == pygame.K_d or stopping_event.key == pygame.K_a:
             self.v = 0
 
     def targetting(self, target_event):
+        """
+        Задаёт угол, по котором направлен ствол танка
+        :param target_event: объект вида pygame.event
+        """
         if target_event.pos[0] - self.x > 0:
             self.fire_angle = math.atan((target_event.pos[1] - self.y) / (target_event.pos[0] - self.x))
         elif target_event.pos[0] - self.x < 0:
@@ -145,10 +200,16 @@ class PlayerTank(Tank):
             self.fire_angle = math.copysign(math.pi / 2, target_event.pos[1] - self.y)
 
     def power_up(self):
+        """
+        Подаёт сигнал логике, что танк начинает заряжать заряд мощнее
+        """
         self.power_on = 1
         self.timer_s = time.time()
 
     def empower(self):
+        """
+        Увеличение мощности заряда по прошествии некоторого времени
+        """
         if self.power_on:
             if time.time() - self.timer_s > self.reload_rate:
                 if self.power < 20:
@@ -156,6 +217,11 @@ class PlayerTank(Tank):
                 self.timer_s = time.time()
 
     def fire(self, bullets_array):
+        """
+        Выстрел из танка
+        :param bullets_array: массив объектов класса Bullet
+        :return: этот же массив, но с добавленной в него выстреленной пулей
+        """
         bullet = Bullet(self.surface, self.x + math.cos(self.fire_angle) * self.width / 2,
                         self.y - self.height / 2 + math.sin(self.fire_angle) * self.width / 2, self.power,
                         self.fire_angle, self.caliber // 2)
@@ -165,6 +231,12 @@ class PlayerTank(Tank):
         return bullets_array
 
     def fire_ptur(self, firing_event, pturs_array):
+        """
+        Танк может стрелять управляемыми ракетами
+        :param firing_event: объект вида pygame.event
+        :param pturs_array: массив объектов класса Ptur
+        :return: от же массив, но с добавленным в него выстреленным птуром
+        """
         if firing_event.key == pygame.K_f and self.ptured == 1:
             ptur_rocket = Ptur(self.surface, self.x, self.y - 2 * self.r, 4, 0)
             self.ptured = 0
@@ -180,6 +252,9 @@ class Interface:
         self.tank = player_tank
 
     def draw(self):
+        """
+        Рисует интерфейс для игрока
+        """
         dr.rect(self.screen, INTERFACE_COLOR, (0, HEIGHT, WIDTH, INTERFACE_HEIGHT))
         dr.rect(self.screen, YELLOW, (WIDTH // 5, HEIGHT + INTERFACE_HEIGHT // 3, WIDTH // 10, INTERFACE_HEIGHT // 3))
         dr.rect(self.screen, RED,
@@ -196,13 +271,26 @@ class Landshaft:
         self.height = LANDSHAFT_HEIGHT
 
     def draw(self):
+        """
+        Рисует ландшафт
+        """
         dr.rect(self.screen, 0x243c07, (0, HEIGHT - LANDSHAFT_HEIGHT, WIDTH, LANDSHAFT_HEIGHT))
         dr.line(self.screen, RED, (DEFEAT_X_POS, HEIGHT - LANDSHAFT_HEIGHT), (DEFEAT_X_POS, HEIGHT))
 
     def hittest(self, attack_bullet):
+        """
+        Проверяет, попала ли пуля в землю
+        :param attack_bullet: объект класса Bullet
+        :return: True, если да False, если нет
+        """
         return attack_bullet.y > HEIGHT - self.height
 
     def death(self, attack_bullet, explosions_array):
+        """
+        Создаёт взрыв при попадании снаряда
+        :param attack_bullet: объукт класса Bullet
+        :param explosions_array: Массив объектов класса Explosion
+        """
         explosion = Explosion(self.screen, 3, 3, attack_bullet.x, attack_bullet.y, 6, minr=2)
         explosions_array.append(explosion)
 
@@ -218,6 +306,9 @@ class Ptur(Bullet):
         self.lived_s = time.time()
 
     def draw(self):
+        """
+        Рисует птур
+        """
         dr.line(self.screen, BLACK,
                 (self.x - math.cos(self.angle) * self.length, self.y - math.sin(self.angle) * self.length),
                 (self.x, self.y),
@@ -230,16 +321,27 @@ class Ptur(Bullet):
         explosion.draw()
 
     def move_by_keyboard(self, moving_event):
+        """
+        Меняет первую производную угла направления движения птура
+        :param moving_event: объект класса pygame.event
+        """
         if moving_event.key == pygame.K_w:
             self.omega = math.pi / (2 * FPS)
         elif moving_event.key == pygame.K_s:
             self.omega = - math.pi / (2 * FPS)
 
     def stop_by_keyboard(self, stopping_event):
+        """
+        Меняет первую производную угла направления движения птура
+        :param stopping_event: объект класса pygame.event
+        """
         if stopping_event.key == pygame.K_w or stopping_event.key == pygame.K_s:
             self.omega = 0
 
     def move(self):
+        """
+        Перемещает птур в пространстве
+        """
         self.angle += self.omega
         self.x += self.v * math.cos(self.angle)
         self.y += self.v * math.sin(self.angle)
@@ -257,6 +359,9 @@ class Explosion:
         self.color = color
 
     def draw(self):
+        """
+        Рисует взрыв на экране
+        """
         for j in range(self.number):
             dr.circle(self.screen, self.color, (self.x + randint(-self.r, self.r), self.y + randint(-self.r, self.r)),
                       randint(self.minr, self.r // 2))
@@ -276,9 +381,17 @@ class Bomb(Ptur):
                   self.r * 3 // 4)
 
     def move_by_keyboard(self, moving_event):
+        """
+        Бомба с клавиатуры не управляется
+        :param moving_event: объект класса pygame.event
+        """
         return 0
 
     def stop_by_keyboard(self, stopping_event):
+        """
+        Бомба с клавиатуры не управляется
+        :param stopping_event: объект класса pygame.event
+        """
         return 0
 
 
@@ -301,6 +414,11 @@ class Bomber:
         self.set_dest(x_dest, y_dest)
 
     def set_dest(self, x_dest, y_dest):
+        """
+        Задаёт точку, в которую должен прилететь бомбардировщик
+        :param x_dest: координата x точки
+        :param y_dest: координата y точки
+        """
         self.x_dest = x_dest
         self.y_dest = y_dest
         if x_dest - self.x > 0:
@@ -313,12 +431,18 @@ class Bomber:
         self.vy = self.v * math.sin(self.dest_angle)
 
     def draw(self):
+        """
+        Рисует бомбардировщик на экране
+        """
         dr.circle(self.screen, self.color, (self.x, self.y), self.r)
         if self.bombed:
             bomb = Bomb(self.screen, self.x, self.y + self.r, 0)
             bomb.draw()
 
     def move(self):
+        """
+        Передвигает бомбардировщик в пространстве, пока он не достигнет точки, в которую он должен попасть
+        """
         if not (self.x_dest - 5 < self.x < self.x_dest + 5 and self.y_dest - 5 < self.y < self.y_dest + 5):
             self.x += self.vx
             self.y += self.vy
@@ -326,18 +450,35 @@ class Bomber:
             self.mission = 0
 
     def hittest(self, attack_bullet):
+        """
+        Проверяет, попала ли пуля в бомбардировщик
+        :param attack_bullet: объект класса Bullet
+        :return: True, если да, False, если нет
+        """
         return (attack_bullet.x - self.x) ** 2 + (attack_bullet.y - self.y) ** 2 < self.r ** 2
 
     def death(self, explosions_array):
+        """
+        Метод, взрывающий бомбардировщик
+        :param explosions_array: массив объектов класса explosions
+        """
         explosion = Explosion(self.screen, 10, 0, self.x, self.y, self.r, minr=3)
         explosions_array.append(explosion)
         self.life = 0
         self.color = BLACK
 
     def alive(self):
+        """
+        Покаывает, не попадали ли снаряды по бомбардировщику
+        :return: True, если не попадали, False - иначе
+        """
         return self.life > 0
 
     def release_bomb(self):
+        """
+        Метод, вызываемый при сбросе бомбы бомбардировщиком
+        :return: объект класса Bomb
+        """
         bomb = Bomb(self.screen, self.x, self.y + self.r, 6)
         self.bombed = 0
         self.set_dest(200, -100)
@@ -355,21 +496,20 @@ class FiringBomber(Bomber):
         self.caliber = 3
         self.length = self.r * 1.5
 
-    def set_target(self, target_x, target_y):
-        if target_x - self.x > 0:
-            self.target_angle = math.atan((target_y - self.y) / (target_x - self.x))
-        elif target_x - self.x < 0:
-            self.target_angle = math.atan((target_y - self.y) / (target_x - self.x)) - math.pi
-        else:
-            self.target_angle = math.copysign(math.pi / 2, target_y - self.y)
-
     def draw(self):
+        """
+        Рисует стреляющий бомбардировщик на экране
+        """
         dr.circle(self.screen, self.color, (self.x, self.y), self.r)
         dr.line(self.screen, BLACK, (self.x, self.y),
                 (self.x + math.cos(self.target_angle) * self.length,
                  self.y + math.sin(self.target_angle) * self.length), width=self.caliber)
 
     def fire(self):
+        """
+        Метод, вызываемый при выстреле стреляющего бомбардировщика
+        :return: объект класса Bullet
+        """
         bullet = Bullet(self.screen, self.x + math.cos(self.target_angle) * self.length,
                         self.y + math.sin(self.target_angle) * self.length, 10,
                         self.target_angle, self.caliber // 2)
@@ -377,13 +517,22 @@ class FiringBomber(Bomber):
 
 
 class Times:
+    """
+    Класс, хранящий в своих полях времена, когда были созданы отдельные экземпляры классов Bomber и Firebomber
+    """
+
     def __init__(self):
-        self.start_time = time.time()
         self.firebomber_time = time.time()
         self.bomber_time = time.time()
 
 
 def merge_bullets(bullets_array):
+    """
+    Данная функция просматриваетт массив объектов класса Bullet и убирает из него экземпляры, вылетевшие за экран
+    или попавшие во что-либо, передвигающая и рисующая остальные
+    :param bullets_array: массив объектов класса Bullet
+    :return: массив, в котором остались только подходящие объекты класса Bullet
+    """
     bullets_merged = []
     for b in bullets_array:
         if b.in_bounds() and b.hit == 0:
@@ -394,6 +543,12 @@ def merge_bullets(bullets_array):
 
 
 def merge_bombs(bombs_array):
+    """
+    Данная функция просматриваетт массив объектов класса Bomb и убирает из него экземпляры, вылетевшие за экран
+    или попавшие во что-либо, передвигающая и рисующая остальные
+    :param bombs_array: массив объектов класса Bomb
+    :return: массив, в котором остались только подходящие объекты класса Bomb
+    """
     bombs_merged = []
     for b in bombs_array:
         if b.in_bounds() and b.hit == 0:
@@ -404,6 +559,12 @@ def merge_bombs(bombs_array):
 
 
 def merge_ptur(pturs_array):
+    """
+    Данная функция просматриваетт массив объектов класса Ptur и убирает из него экземпляры, вылетевшие за экран
+    или попавшие во что-либо, передвигающая и рисующая остальные
+    :param pturs_array: массив объектов класса Ptur
+    :return: массив, в котором остались только подходящие объекты класса Ptur
+    """
     merged_pturs = []
     for ptur_entity in pturs_array:
         if time.time() - ptur_entity.lived_s < ptur_entity.lifetime and ptur_entity.hit == 0:
@@ -415,6 +576,19 @@ def merge_ptur(pturs_array):
 
 def merge_hits(player_tank, bullets_array, enemy_tanks_array, explosions_array, pturs_array, land, bombs_array,
                bombers_array, firebombers_array):
+    """
+    Данная функция проверяет, попали ли объекты класса Bullet  его очерних классов в объекты других классов
+    и взаимодействеут с ними всеми
+    :param player_tank: объект класса PlayerTank
+    :param bullets_array: массив объектов класса Bullet
+    :param enemy_tanks_array: массив объектов класса Tank
+    :param explosions_array: массив объектов класса Explosions
+    :param pturs_array: массив объектов класса Ptur
+    :param land: бъект класса Landshaft
+    :param bombs_array: массив объектов класса Bomb
+    :param bombers_array: массив объектов класса Bomber
+    :param firebombers_array: массив объектов класса Firebomber
+    """
     hits_array = []
     for bullet in bullets_array:
         hits_array.append(bullet)
@@ -444,6 +618,11 @@ def merge_hits(player_tank, bullets_array, enemy_tanks_array, explosions_array, 
 
 
 def merge_explosions(explosions_array):
+    """
+
+    :param explosions_array:
+    :return:
+    """
     explosions_merged = []
     for e in explosions_array:
         e.draw()
@@ -454,6 +633,11 @@ def merge_explosions(explosions_array):
 
 
 def merge_tanks(tanks_array):
+    """
+
+    :param tanks_array:
+    :return:
+    """
     tanks_merged = []
     for t in tanks_array:
         if t.alive():
@@ -464,6 +648,11 @@ def merge_tanks(tanks_array):
 
 
 def merge_player_tank(player_tank):
+    """
+
+    :param player_tank:
+    :return:
+    """
     if time.time() - player_tank.previous_ptur > player_tank.ptur_reload and not player_tank.ptured:
         player_tank.ptured = 1
     player_tank.move()
@@ -472,6 +661,12 @@ def merge_player_tank(player_tank):
 
 
 def merge_bombers(bombers_array, bombs_array):
+    """
+
+    :param bombers_array:
+    :param bombs_array:
+    :return:
+    """
     bombers_merged = []
     for b in bombers_array:
         if b.alive() and (b.mission or b.y > -30):
@@ -485,6 +680,12 @@ def merge_bombers(bombers_array, bombs_array):
 
 
 def merge_firebombers(bombers_array, bullets_array):
+    """
+
+    :param bombers_array:
+    :param bullets_array:
+    :return:
+    """
     bombers_merged = []
     for b in bombers_array:
         if b.alive():
@@ -500,6 +701,19 @@ def merge_firebombers(bombers_array, bullets_array):
 
 def merge_objects(player_tank, bullets_array, enemy_t_array, explosions_array, pturs_array, land, bombs_array,
                   bombers_array, firebombers_array):
+    """
+
+    :param player_tank:
+    :param bullets_array:
+    :param enemy_t_array:
+    :param explosions_array:
+    :param pturs_array:
+    :param land:
+    :param bombs_array:
+    :param bombers_array:
+    :param firebombers_array:
+    :return:
+    """
     bullets_array = merge_bullets(bullets_array)
     enemy_t_array = merge_tanks(enemy_t_array)
     bombers_array = merge_bombers(bombers_array, bombs_array)
@@ -514,6 +728,15 @@ def merge_objects(player_tank, bullets_array, enemy_t_array, explosions_array, p
 
 
 def event_merger(event_0, game_finish, player_tank, pturs_array, bullets_array):
+    """
+
+    :param event_0:
+    :param game_finish:
+    :param player_tank:
+    :param pturs_array:
+    :param bullets_array:
+    :return:
+    """
     if event_0.type == pygame.QUIT:
         game_finish = True
     elif event_0.type == pygame.KEYDOWN:
@@ -535,10 +758,26 @@ def event_merger(event_0, game_finish, player_tank, pturs_array, bullets_array):
 
 
 def initialize(surface):
+    """
+
+    :param surface:
+    :return:
+    """
     return [], [], [], [], [], [], [], PlayerTank(surface, PLAYER_START_POS_X, PLAYER_START_POS_Y), Landshaft(surface)
 
 
 def merge_process(surface, game_finish, player_tank, tanks_array, bombers_array, firebombers_array, times_class):
+    """
+
+    :param surface:
+    :param game_finish:
+    :param player_tank:
+    :param tanks_array:
+    :param bombers_array:
+    :param firebombers_array:
+    :param times_class:
+    :return:
+    """
     if not player_tank.alive():
         game_finish = 1
     for tank in tanks_array:
@@ -556,6 +795,10 @@ def merge_process(surface, game_finish, player_tank, tanks_array, bombers_array,
 
 
 def game_over():
+    """
+
+    :return:
+    """
     print("Игра окончена. Вы прогирали")
     time.sleep(2)
 
