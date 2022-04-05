@@ -30,7 +30,7 @@ PLAYER_START_POS_Y = 515
 
 ENEMY_TANKS_NUM = 4
 BOMBERS_RESPAWN = 3
-FIREBOMBERS_RESPAWN = 3
+FIREBOMBERS_RESPAWN = 10
 
 DEFEAT_X_POS = 200
 
@@ -285,13 +285,26 @@ class Interface:
         Рисует интерфейс для игрока
         """
         dr.rect(self.screen, INTERFACE_COLOR, (0, HEIGHT, WIDTH, INTERFACE_HEIGHT))
-        dr.rect(self.screen, YELLOW, (WIDTH // 5, HEIGHT + INTERFACE_HEIGHT // 3, WIDTH // 10, INTERFACE_HEIGHT // 3))
+        dr.rect(self.screen, YELLOW,
+                (WIDTH // 5, HEIGHT + INTERFACE_HEIGHT // 3, (WIDTH // 200) * 20, INTERFACE_HEIGHT // 3))
         dr.rect(self.screen, RED,
-                (WIDTH // 10, HEIGHT + INTERFACE_HEIGHT // 3, WIDTH // 300 * self.tank.power, INTERFACE_HEIGHT // 3))
+                (WIDTH // 5, HEIGHT + INTERFACE_HEIGHT // 3, (WIDTH // 200) * self.tank.power, INTERFACE_HEIGHT // 3))
         pygame.font.init()
         myfont = pygame.font.SysFont('Comic Sans MS', 30)
-        textsurface = myfont.render("Power:", False, (0, 255, 0))
-        self.screen.blit(textsurface, (WIDTH // 20, HEIGHT + INTERFACE_HEIGHT // 4))
+        textsurface_1 = myfont.render("Power:", False, (0, 255, 0))
+        self.screen.blit(textsurface_1, (WIDTH // 20, HEIGHT + INTERFACE_HEIGHT // 4))
+        dr.rect(self.screen, YELLOW,
+                (5 * WIDTH // 8, HEIGHT + INTERFACE_HEIGHT // 3, (WIDTH // 200) * 50, INTERFACE_HEIGHT // 3))
+        if self.tank.ptured:
+            dr.rect(self.screen, GREEN,
+                    (5 * WIDTH // 8, HEIGHT + INTERFACE_HEIGHT // 3, (WIDTH // 200) * 50, INTERFACE_HEIGHT // 3))
+        else:
+            dr.rect(self.screen, RED,
+                    (5 * WIDTH // 8, HEIGHT + INTERFACE_HEIGHT // 3,
+                     (WIDTH // 200) * (time.time() - self.tank.previous_ptur) / self.tank.ptur_reload * 50,
+                     INTERFACE_HEIGHT // 3))
+        textsurface_2 = myfont.render("Ptur:", False, (0, 255, 0))
+        self.screen.blit(textsurface_2, (WIDTH // 2, HEIGHT + INTERFACE_HEIGHT // 4))
 
 
 class Landshaft:
