@@ -612,7 +612,6 @@ class FiringBomber(Bomber):
         Bomber.__init__(self, surface, x, y, x_dest, y_dest)
         self.bombed = 0
         self.target_angle = -math.pi
-        self.ready_to_fire = 0
         self.previous_shot = time.time()
         self.reload = 3
         self.caliber = 3
