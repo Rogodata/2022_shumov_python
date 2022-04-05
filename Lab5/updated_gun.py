@@ -619,9 +619,9 @@ def merge_hits(player_tank, bullets_array, enemy_tanks_array, explosions_array, 
 
 def merge_explosions(explosions_array):
     """
-
-    :param explosions_array:
-    :return:
+    Данная функция отрисовывает взрывы на экране и убирает из массива те, которые более не необходимо отрисовывать
+    :param explosions_array: массив объектов класса Explosions
+    :return: массив объектов класса Explosions
     """
     explosions_merged = []
     for e in explosions_array:
@@ -634,9 +634,9 @@ def merge_explosions(explosions_array):
 
 def merge_tanks(tanks_array):
     """
-
-    :param tanks_array:
-    :return:
+    Данная функция отрисовывает танки противника на экране и убирает из массива те, которые на момент отрисовки "неживы"
+    :param tanks_array: массив объектов класса Tank
+    :return: массив объектов класса Tank
     """
     tanks_merged = []
     for t in tanks_array:
@@ -649,9 +649,8 @@ def merge_tanks(tanks_array):
 
 def merge_player_tank(player_tank):
     """
-
-    :param player_tank:
-    :return:
+    Данная функция отрисовывает танк игорока на экране и усиляет заряд для выстрела, заряжает птур для танка
+    :param player_tank: объект класса PlayerTank
     """
     if time.time() - player_tank.previous_ptur > player_tank.ptur_reload and not player_tank.ptured:
         player_tank.ptured = 1
@@ -662,10 +661,11 @@ def merge_player_tank(player_tank):
 
 def merge_bombers(bombers_array, bombs_array):
     """
-
-    :param bombers_array:
-    :param bombs_array:
-    :return:
+    Данная функция отрисовывает бомбардировщики противника на экране и убирает из массива те, которые на момент
+    отрисовки "неживы". Также заставляет бомбардировщик сбрасывать бому и улетать за экран.
+    :param bombers_array: массив объектов класса Bomber
+    :param bombs_array: массив объектов класса Bomb
+    :return: массив объектов класса Bomber
     """
     bombers_merged = []
     for b in bombers_array:
@@ -681,10 +681,11 @@ def merge_bombers(bombers_array, bombs_array):
 
 def merge_firebombers(bombers_array, bullets_array):
     """
-
-    :param bombers_array:
-    :param bullets_array:
-    :return:
+    Данная функция отрисовывает бомбардировщики противника на экране и убирает из массива те, которые на момент
+    отрисовки "неживы". Также заставляет бомбардировщик сбрасывать бому и улетать за экран.
+    :param bombers_array: массив объектов класса Bomber
+    :param bullets_array: массив объектов класса Bullet
+    :return: массивы объектов класса Bomber и Bullet
     """
     bombers_merged = []
     for b in bombers_array:
@@ -702,17 +703,17 @@ def merge_firebombers(bombers_array, bullets_array):
 def merge_objects(player_tank, bullets_array, enemy_t_array, explosions_array, pturs_array, land, bombs_array,
                   bombers_array, firebombers_array):
     """
-
-    :param player_tank:
-    :param bullets_array:
-    :param enemy_t_array:
-    :param explosions_array:
-    :param pturs_array:
-    :param land:
-    :param bombs_array:
-    :param bombers_array:
-    :param firebombers_array:
-    :return:
+    Данная функция обрабатывает объекты всех классов на экране
+    :param player_tank: объект класса PlayerTank
+    :param bullets_array: массив объектов класса Bullets
+    :param enemy_t_array: массив объектов класса Tank
+    :param explosions_array: массив объектов класса Explosions
+    :param pturs_array: массив объектов класса Pturs
+    :param land: объект класса Landshaft
+    :param bombs_array: массив объектов класса Bomb
+    :param bombers_array: массив объектов класса Bomber
+    :param firebombers_array: массив объектов класса Firebomber
+    :return: массивы объектов в игре
     """
     bullets_array = merge_bullets(bullets_array)
     enemy_t_array = merge_tanks(enemy_t_array)
@@ -729,13 +730,13 @@ def merge_objects(player_tank, bullets_array, enemy_t_array, explosions_array, p
 
 def event_merger(event_0, game_finish, player_tank, pturs_array, bullets_array):
     """
-
-    :param event_0:
-    :param game_finish:
-    :param player_tank:
-    :param pturs_array:
-    :param bullets_array:
-    :return:
+    Данная функция обрабатывает события в игре
+    :param event_0: объект класса pygame.event
+    :param game_finish: переменная, показывающая, должна ли игра закончится по окончании этого кадра
+    :param player_tank: объект класса PlayerTank
+    :param pturs_array: массив объектов класса Ptur
+    :param bullets_array: массив объектов класса Bullet
+    :return: значение перемнной game_finish и массивы объектов классов Ptur и Bullet
     """
     if event_0.type == pygame.QUIT:
         game_finish = True
@@ -759,24 +760,26 @@ def event_merger(event_0, game_finish, player_tank, pturs_array, bullets_array):
 
 def initialize(surface):
     """
-
-    :param surface:
-    :return:
+    Данная функция инициализирует основные игровыые перемнные: массивы объектов и объект танка игрока, обект
+    класса landshaft
+    :param surface: бъект класса pygame.surface
+    :return: начальные значения массивов и переменных
     """
     return [], [], [], [], [], [], [], PlayerTank(surface, PLAYER_START_POS_X, PLAYER_START_POS_Y), Landshaft(surface)
 
 
 def merge_process(surface, game_finish, player_tank, tanks_array, bombers_array, firebombers_array, times_class):
     """
-
-    :param surface:
-    :param game_finish:
-    :param player_tank:
-    :param tanks_array:
-    :param bombers_array:
-    :param firebombers_array:
-    :param times_class:
-    :return:
+    Данная функция проверяет, не проиграли ли мы и выводит на экран новые танки, бомбардировщики и стреляющие
+    бомбардировщики противника
+    :param surface: объект класса pygame.surface
+    :param game_finish: переменная, показывающая, должна ли игра закончится по окончании этого кадра
+    :param player_tank: бъект класса PlayerTank
+    :param tanks_array: массив объектов класса Tank
+    :param bombers_array: массив объектов класса Bomber
+    :param firebombers_array: массив объектов класса Firebomber
+    :param times_class: объект класса Times
+    :return: Значение переменной game_finish
     """
     if not player_tank.alive():
         game_finish = 1
@@ -796,8 +799,7 @@ def merge_process(surface, game_finish, player_tank, tanks_array, bombers_array,
 
 def game_over():
     """
-
-    :return:
+    Данная функция выполняется при проигрыше
     """
     print("Игра окончена. Вы прогирали")
     time.sleep(2)
